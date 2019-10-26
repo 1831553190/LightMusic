@@ -7,10 +7,14 @@
 
 
 # 代码截图
-![](./ScreenShots/sc1.png)
-![](./ScreenShots/sc2.png)
-![](./ScreenShots/sc3.png)
-![](./ScreenShots/sc4.png)
+ <img src="./ScreenShots/sc1.png" width = "45%" height = "45%" alt="" align=center />
+ <img src="./ScreenShots/sc2.png" width = "45%" height = "45%" alt="" align=center />
+ <img src="./ScreenShots/sc3.png" width = "45%" height = "45%" alt="" align=center />
+ <img src="./ScreenShots/sc4.png" width = "45%" height = "45%" alt="" align=center />
+<!-- ![](./ScreenShots/sc1.png){:height="20%" width="20%"}
+![](./ScreenShots/sc2.png){:height="50%" width="50%"}
+![](./ScreenShots/sc3.png){:height="50%" width="50%"}
+![](./ScreenShots/sc4.png){:height="50%" width="50%"} -->
 
 # 设计
  - glide（专辑图加载） 
