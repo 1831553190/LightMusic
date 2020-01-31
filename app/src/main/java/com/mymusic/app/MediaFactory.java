@@ -17,7 +17,6 @@ import com.mymusic.app.bean.DataBean;
 import com.mymusic.app.bean.MediaData;
 
 import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +25,7 @@ public class MediaFactory {
 	private static int width;
 	private static Matrix matrix;
 	
-	public List<MediaData> getMediaList(Context context,String type,long id){
+	public static List<MediaData> getMediaList(Context context,String type,long id){
 		List<MediaData> mediaDataList=new ArrayList<>();
 		ContentResolver contentResolver =context.getContentResolver();
 		String selection=null;
@@ -57,7 +56,7 @@ public class MediaFactory {
 	
 	
 	
-	public List<Artist> getArtistList(Context context){
+	public static List<Artist> getArtistList(Context context){
 		List<Artist> mediaDataList=new ArrayList<>();
 		ContentResolver contentResolver =context.getContentResolver();
 		Cursor cursor=contentResolver.query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,null,null,null, MediaStore.Audio.Artists.DEFAULT_SORT_ORDER);
@@ -76,7 +75,7 @@ public class MediaFactory {
 	}
 	
 	
-	public List<AlbumData> getAlbumList(Context context){
+	public static List<AlbumData> getAlbumList(Context context){
 		List<AlbumData> albumDataList=new ArrayList<>();
 		ContentResolver contentResolver =context.getContentResolver();
 		Cursor cursor=contentResolver.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,null,null,null, MediaStore.Audio.Albums.DEFAULT_SORT_ORDER);
@@ -98,7 +97,7 @@ public class MediaFactory {
 	}
 	
 	
-	public Uri getAlbumArtGetDescriptor(Context context,long albumId){
+	public static Uri getAlbumArtGetDescriptor(Context context,long albumId){
 		Uri uri = Uri.parse("content://media/external/audio/albumart");
 		FileDescriptor fileDescriptor = null;
 		Uri contentUris = null;
@@ -121,8 +120,9 @@ public class MediaFactory {
 		String albumCoverPath = null;
 		Cursor cursor=context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,null, MediaStore.Audio.Albums._ID+"="+albumId,null,null);
 		if (cursor!=null){
-			cursor.moveToFirst();
-			albumCoverPath=cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+			if (cursor.moveToFirst()) {
+			    albumCoverPath=cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+            }
 		}
 		if (cursor!=null&&!cursor.isClosed())
 			cursor.close();
@@ -131,20 +131,16 @@ public class MediaFactory {
 	
 	
 	public static Bitmap getAlbumArtCoverPicture(final Context context, final long albumId){
-		final Bitmap bitmap= BitmapFactory.decodeFile(getAlbumArtCover(context,albumId));
-;
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				if (bitmap != null) {
-					
-					height = bitmap.getHeight();
-					width = bitmap.getWidth();
-					matrix = new Matrix();
-					matrix.postScale((float)100/width,(float)100/height);
-				}
-			}
-		}).start();
+	    Bitmap bitmap= BitmapFactory.decodeFile(getAlbumArtCover(context,albumId));
+		new Thread(() -> {
+            if (bitmap != null) {
+
+                height = bitmap.getHeight();
+                width = bitmap.getWidth();
+                matrix = new Matrix();
+                matrix.postScale((float)100/width,(float)100/height);
+            }
+        }).start();
 		return Bitmap.createBitmap(bitmap,0,0,width,height,matrix,true);
 	}
 }

@@ -41,15 +41,14 @@ public class PlayListActivity extends AppCompatActivity {
 		intent=getIntent();
 		String type=intent.getStringExtra("type");
 		long id=intent.getLongExtra("id",0);
-		MediaFactory mediaFactory=new MediaFactory();
 		songList=new ArrayList<>();
 		if (type.equals(DataBean.TYPE_ALBUM)){
-			songList=mediaFactory.getMediaList(this,DataBean.TYPE_ALBUM,id);
+			songList= MediaFactory.getMediaList(this,DataBean.TYPE_ALBUM,id);
 		}else{
-			songList=mediaFactory.getMediaList(this,DataBean.TYPE_ARTIST,id);
+			songList= MediaFactory.getMediaList(this,DataBean.TYPE_ARTIST,id);
 		}
 		Glide.with(this)
-				.load(mediaFactory.getAlbumArtGetDescriptor(this,songList.get(0).getAlbumID()))
+				.load(MediaFactory.getAlbumArtGetDescriptor(this,songList.get(0).getAlbumID()))
 				.error(R.drawable.cover_background)
 				.into(cover);
 		recyclerView=findViewById(R.id.main_list);
@@ -57,33 +56,32 @@ public class PlayListActivity extends AppCompatActivity {
 		recyclerView.setAdapter(songAdapter);
 		recyclerView.setLayoutManager(new LinearLayoutManager(this));
 		bindService(new Intent(this,MediaService.class),serviceConnection, Context.BIND_AUTO_CREATE);
-		songAdapter.setOnItemClickListener(new SongAdapter.OnItemClickListener() {
-			@Override
-			public void onItemClick(int position) {
-				binder.play(position);
-			}
+//		songAdapter.setOnItemClickListener(new SongAdapter.OnItemClickListener() {
+//			@Override
+//			public void onItemClick(int position) {
+//				binder.play(position);
+//			}
+//		});
+		songAdapter.setOnItemClickListener(position -> {
+			binder.setSongPlayList(songList);
+			binder.play(position);
 		});
-		songAdapter.setOnItemClickListener(new SongAdapter.OnItemClickListener() {
-			@Override
-			public void onItemClick(int position) {
-				binder.setSongPlayList(songList);
-				binder.play(position);
-			}
-		});
-	
 	}
 	ServiceConnection serviceConnection=new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			binder= (MediaService.Binder) service;
-			
 		}
 		
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-		
+
 		}
 	};
-	
-	
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		unbindService(serviceConnection);
+	}
 }

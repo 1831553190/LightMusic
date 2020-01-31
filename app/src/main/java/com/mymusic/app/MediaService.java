@@ -28,16 +28,16 @@ import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.mymusic.app.bean.AlbumData;
 import com.mymusic.app.bean.Artist;
 import com.mymusic.app.bean.DataBean;
 import com.mymusic.app.bean.MediaData;
+import com.mymusic.app.inter.ServiceUpdate;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 public class MediaService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener {
@@ -65,13 +65,37 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	
 	
 
-	private MediaFactory mediaFactory;
 	private SharedPreferences sharePreference;
 	
 	
 	public class Binder extends android.os.Binder{
+
+		HashMap<String,ServiceUpdate> listeners=new HashMap<>();
+
+
+		public void updateListener(){
+			for (ServiceUpdate service:listeners.values()){
+				service.updateSong();
+			}
+		}
+
+		public MediaPlayer getMediaplay(){
+			return mediaPlayer;
+		}
+
+		public void removeListener(String lisName){
+			listeners.remove(lisName);
+		}
+
+
+		public void addListener(String lisName,ServiceUpdate serviceUpdate){
+			listeners.put(lisName,serviceUpdate);
+		}
 		
 		public List<MediaData> getMediaList(){
+			return mediaDataList;
+		}
+		public List<MediaData> getMediaDataList(){
 			return mediaDataList;
 		}
 		public List<AlbumData> getAlbumList(){
@@ -80,10 +104,38 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		public List<Artist> getArtistList(){
 			return artistList;
 		}
-		public void play(int position){
-			playMusic(position);
-			currentPosition=position;
+		public MediaData getMediaData(){
+			if (!mediaDataList.isEmpty()){
+				return mediaDataList.get(currentPosition);
+			}
+			return null;
 		}
+
+		public void play(int position){
+//		currentPosition=position;
+				if (currentPosition==-1)
+					currentPosition=0;
+				try {
+					mediaPlayer.reset();
+					mediaPlayer.setDataSource(playList.get(position).getFilePath());
+					mediaPlayer.prepare();
+					mediaPlayer.start();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					startForegroundService(new Intent(MediaService.this,MediaService.class));
+				}
+				startForeground(1,notifyMedia(position));
+				currentPosition=position;
+
+			}
+
+			private void stop(){
+				stopForeground(false);
+				notificationManager.notify(1,notifyMedia(currentPosition));
+			}
+
 		
 		public int getState(){
 			return state;
@@ -93,13 +145,71 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			playList.addAll(mediaDataList);
 			state=0;
 		}
-		
+
+		public boolean isPlaying(){
+			return mediaPlayer.isPlaying();
+		}
 		
 		public void setSongPlayList(List<MediaData> list) {
 			playList.clear();
 			playList.addAll(list);
 			state=1;
 		}
+
+
+		public void playAndPause(){
+			if (mediaPlayer.isPlaying()){
+				mediaPlayer.pause();
+				stopForeground(false);
+				notificationManager.notify(1,notifyMedia(currentPosition));
+				sharePreference.edit().putInt("position",currentPosition).apply();
+			}else{
+				mediaPlayer.start();
+				startForeground(1,notifyMedia(currentPosition));
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					startForegroundService(new Intent(MediaService.this,MediaService.class));
+				}
+			}
+			binder.updateListener();
+		}
+
+		public void playPrevious(){
+			if (currentPosition<=0){
+				currentPosition=playList.size()-1;
+			}else{
+				--currentPosition;
+			}
+			binder.play(currentPosition);
+		}
+		public void playNext(){
+			if(currentPosition>=playList.size()-1){
+				currentPosition=0;
+
+			}else{
+				++currentPosition;
+			}
+			binder.play(currentPosition);
+
+		}
+
+		private void play() {
+			if (currentPosition==-1){
+				currentPosition=0;
+			}
+			try{
+				mediaPlayer.reset();
+				mediaPlayer.setDataSource(playList.get(currentPosition).getFilePath());
+				mediaPlayer.prepare();
+				mediaPlayer.start();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				startForegroundService(new Intent(MediaService.this,MediaService.class));
+			}
+		}
+
+
 	}
 	
 	
@@ -109,15 +219,17 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			update();
 		}
+		binder.updateListener();
 	}
 	
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		if (++currentPosition<=playList.size()-1){
-			playMusic(currentPosition);
+			binder.play(currentPosition);
 		}else{
 			currentPosition=0;
-			stop();
+			binder.stop();
+			binder.updateListener();
 		}
 	}
 	
@@ -143,49 +255,35 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		String command=intent.getAction();
-		if (command!=null){
+		if (intent!=null){
+			String command=intent.getAction();
+			if (command!=null){
 //			prepare();
-			switch (command){
-				case DataBean.ACTION_PLAYANDPASE:
-					palyAndPause();
-					break;
-				case DataBean.ACTION_PLAYPRIVAOUS:
-					playPrevious();
-					break;
-				case DataBean.ACTION_PLAYNEXT:
-					playNext();
-					break;
+				switch (command){
+					case DataBean.ACTION_PLAYANDPASE:
+						binder.playAndPause();
+						break;
+					case DataBean.ACTION_PLAYPRIVAOUS:
+						binder.playPrevious();
+						break;
+					case DataBean.ACTION_PLAYNEXT:
+						binder.playNext();
+						break;
+				}
 			}
 		}
 		return super.onStartCommand(intent, flags, startId);
 	}
 	
-	private void prepare() {
-		if (currentPosition==-1){
-			currentPosition=0;
-		}
-		try{
-			mediaPlayer.reset();
-			mediaPlayer.setDataSource(playList.get(currentPosition).getFilePath());
-			mediaPlayer.prepare();
-			mediaPlayer.start();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			startForegroundService(new Intent(this,MediaService.class));
-		}
-	}
+
 	
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		mediaFactory=new MediaFactory();
 		mediaPlayer=new MediaPlayer();
-		mediaDataList=mediaFactory.getMediaList(this, null,0);
-		albumDataList=mediaFactory.getAlbumList(this);
-		artistList=mediaFactory.getArtistList(this);
+		mediaDataList= MediaFactory.getMediaList(this, null,0);
+		albumDataList= MediaFactory.getAlbumList(this);
+		artistList= MediaFactory.getArtistList(this);
 		playList=new ArrayList<>();
 		queryList=new ArrayList<>();
 		playList.addAll(mediaDataList);
@@ -205,8 +303,6 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		mediaButtonIntent.setComponent(mComponentName);
 		AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		mAudioManager.registerMediaButtonEventReceiver(mComponentName);
-		
-		
 	}
 	
 	
@@ -220,6 +316,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			playbackState=new PlaybackState.Builder().setState(PlaybackState.STATE_PLAYING,currentPosition,System.currentTimeMillis()).setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS).build();
 			mediaSession.setPlaybackState(playbackState);
 			mediaSession.setCallback(playCallBack);
+
 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			notificationChannel=new NotificationChannel("listening_music","music", NotificationManager.IMPORTANCE_LOW);
@@ -230,6 +327,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 }
 
 
+	@RequiresApi (Build.VERSION_CODES.LOLLIPOP)
 	private MediaSession.Callback playCallBack=new MediaSession.Callback() {
 		@Override
 		public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
@@ -267,61 +365,11 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		}
 	};
 	
-	public void playMusic(int position){
-//		currentPosition=position;
-		if (currentPosition==-1)
-			currentPosition=0;
-		try {
-			mediaPlayer.reset();
-			mediaPlayer.setDataSource(playList.get(position).getFilePath());
-			mediaPlayer.prepare();
-			mediaPlayer.start();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			startForegroundService(new Intent(this,MediaService.class));
-		}
-		startForeground(1,notifyMedia(position));
-		
-	}
+
+
 	
-	private void stop(){
-		stopForeground(false);
-		notificationManager.notify(1,notifyMedia(currentPosition));
-	}
-	private void playNext(){
-		if(currentPosition>=playList.size()-1){
-			currentPosition=0;
-			
-		}else{
-			++currentPosition;
-		}
-		playMusic(currentPosition);
-		
-	}
-	
-	private void playPrevious(){
-		if (currentPosition<=0){
-			currentPosition=playList.size()-1;
-			
-		}else{
-			--currentPosition;
-		}
-		playMusic(currentPosition);
-	}
-	private void palyAndPause(){
-		if (mediaPlayer.isPlaying()){
-			mediaPlayer.pause();
-			stopForeground(false);
-			notificationManager.notify(1,notifyMedia(currentPosition));
-			sharePreference.edit().putInt("position",currentPosition).apply();
-		}else{
-			mediaPlayer.start();
-			startForeground(1,notifyMedia(currentPosition));
-		}
-		
-	}
+
+
 	
 	
 	public static final Bitmap drawableToBitmap(Drawable drawable) {
@@ -337,8 +385,12 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		int icon=mediaPlayer.isPlaying()?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp;
 		action = new Notification.Action(R.drawable.ic_pause_black_24dp,"play",null);
 		Intent intent=new Intent(this,MainActivity.class);
-		
-		bitmap1=BitmapFactory.decodeFile(new MediaFactory().getAlbumArtCover(this,playList.get(position).getAlbumID()));
+		String imgPath=MediaFactory.getAlbumArtCover(this,playList.get(position).getAlbumID());
+		if (imgPath!=null){
+			bitmap1=BitmapFactory.decodeFile(imgPath);
+		}else{
+			bitmap1=null;
+		}
 		PendingIntent pendingIntent= (PendingIntent) PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
 		
 		notifiBuider = new Notification.Builder(this)
@@ -353,7 +405,6 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				.setContentIntent(pendingIntent)
 				.setPriority(Notification.PRIORITY_LOW);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
 				notifiBuider.setCategory(Notification.CATEGORY_TRANSPORT)
 						.setStyle(mediaStyle);
 		}
@@ -363,8 +414,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		notification=notifiBuider.build();
 		return notification;
 	}
-	
-	
+
 	class ActionOps extends BroadcastReceiver{
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -372,13 +422,13 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			if (action!=null){
 				switch (action){
 					case DataBean.ACTION_PLAYANDPASE:
-						palyAndPause();
+						binder.playAndPause();
 						break;
 					case DataBean.ACTION_PLAYPRIVAOUS:
-						playPrevious();
+						binder.playPrevious();
 						break;
 					case DataBean.ACTION_PLAYNEXT:
-						playNext();
+						binder.playNext();
 						break;
 				}
 				

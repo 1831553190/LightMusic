@@ -1,11 +1,8 @@
 package com.mymusic.app.fragment;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,27 +13,29 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.mymusic.app.MediaService;
+import com.mymusic.app.MainActivity;
+import com.mymusic.app.inter.ActivityToFragment;
 import com.mymusic.app.PlayListActivity;
 import com.mymusic.app.R;
 import com.mymusic.app.adapter.ArtistAdapter;
-import com.mymusic.app.adapter.SongAdapter;
 import com.mymusic.app.bean.Artist;
 import com.mymusic.app.bean.DataBean;
-import com.mymusic.app.bean.MediaData;
+import com.mymusic.app.inter.UpdateMag;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClickListener {
+public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClickListener, ActivityToFragment.UpdateArtist {
 	private static final int UPDATE=423;
 	RecyclerView recyclerView;
 	public List<Artist> artistList;
 	ArtistAdapter songAdapter;
-	MediaService mediaService;
-	MediaService.Binder binder;
+//	MediaService mediaService;
+//	MediaService.Binder binder;
 	View view;
 	boolean isInit=false;
+
+	UpdateMag updateMag;
 	
 	
 	
@@ -54,27 +53,29 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 		artistList = new ArrayList<>();
 		recyclerView = view.findViewById(R.id.main_list);
 		songAdapter = new ArtistAdapter(getContext(), artistList);
-		recyclerView.setAdapter(songAdapter);
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-		getContext().bindService(new Intent(getContext(), MediaService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+		recyclerView.setAdapter(songAdapter);
+//		getContext().bindService(new Intent(getContext(), MediaService.class), serviceConnection, Context.BIND_AUTO_CREATE);
 		songAdapter.setOnItemClickListener(this);
-		
+		if (artistList.isEmpty()){
+			updateMag.getData(2);
+		}
 	}
-	
-	ServiceConnection serviceConnection=new ServiceConnection() {
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			binder= (MediaService.Binder) service;
-			artistList.addAll(binder.getArtistList());
-			songAdapter.notifyDataSetChanged();
-			
-		}
-		
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-		
-		}
-	};
+//
+//	ServiceConnection serviceConnection=new ServiceConnection() {
+//		@Override
+//		public void onServiceConnected(ComponentName name, IBinder service) {
+//			binder= (MediaService.Binder) service;
+//			artistList.addAll(binder.getArtistList());
+//			songAdapter.notifyDataSetChanged();
+//
+//		}
+//
+//		@Override
+//		public void onServiceDisconnected(ComponentName name) {
+//
+//		}
+//	};
 	
 	@Override
 	public void onItemClick(int position) {
@@ -83,11 +84,32 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 		intent.putExtra("id",artistList.get(position).getId());
 		startActivity(intent);
 	}
-	
-	
+
+
+	@Override
+	public void onAttach(Context context) {
+		super.onAttach(context);
+		if (context instanceof MainActivity){
+			updateMag= (UpdateMag) context;
+		}
+	}
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		getContext().unbindService(serviceConnection);
+//		getContext().unbindService(serviceConnection);
+	}
+
+	@Override
+	public void updateData(List<Artist> dataList) {
+		artistList.clear();
+		artistList.addAll(dataList);
+		songAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void serverConnect() {
+		updateMag.getData(2);
+
 	}
 }

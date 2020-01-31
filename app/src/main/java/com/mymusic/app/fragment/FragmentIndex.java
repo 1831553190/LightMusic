@@ -1,11 +1,7 @@
 package com.mymusic.app.fragment;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +12,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.mymusic.app.MediaService;
+import com.mymusic.app.inter.ActivityToFragment;
 import com.mymusic.app.R;
+import com.mymusic.app.inter.UpdateMag;
 import com.mymusic.app.adapter.SongAdapter;
 import com.mymusic.app.bean.MediaData;
 
@@ -26,15 +22,16 @@ import com.mymusic.app.bean.MediaData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FragmentIndex extends Fragment {
+public class FragmentIndex extends Fragment implements ActivityToFragment.UpdateIndex{
 	private static final int UPDATE=423;
 	RecyclerView recyclerView;
 	public List<MediaData> songList;
 	SongAdapter songAdapter;
-	MediaService mediaService;
-	MediaService.Binder binder;
+//	MediaService mediaService;
+//	MediaService.Binder binder;
 	View view;
 	boolean isInit=false;
+	UpdateMag updateMag;
 	
 	@Nullable
 	@Override
@@ -52,16 +49,16 @@ public class FragmentIndex extends Fragment {
 		songAdapter =new SongAdapter(getContext(),songList);
 		recyclerView.setAdapter(songAdapter);
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-		getContext().bindService(new Intent(getContext(),MediaService.class),serviceConnection,Context.BIND_AUTO_CREATE);
-		songAdapter.setOnItemClickListener(new SongAdapter.OnItemClickListener() {
-			@Override
-			public void onItemClick(int position) {
-				if (binder.getState()!=0){
-					binder.clearState();
-				}
-				binder.play(position);
-			}
-		});
+		songAdapter.setOnItemClickListener((position)-> updateMag.update(position));
+
+
+//			if (binder.getState()!=0){
+//				binder.clearState();
+//			}
+//			binder.play(position);
+//			updateMag.update(binder.getMediaList().get(position));
+
+
 //		recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
 //			@Override
 //			public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -82,30 +79,32 @@ public class FragmentIndex extends Fragment {
 //				}
 //			}
 //		});
-		
+
 	}
-	
-	ServiceConnection serviceConnection=new ServiceConnection() {
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			binder= (MediaService.Binder) service;
-			songList.addAll(binder.getMediaList());
-			songAdapter.notifyDataSetChanged();
-			
+
+	@Override
+	public void onAttach(Context context) {
+		super.onAttach(context);
+		if (context instanceof UpdateMag){
+			updateMag= (UpdateMag) context;
 		}
-		
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-		
-		}
-	};
-	
-	
-	
-	
+	}
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		getContext().unbindService(serviceConnection);
+	}
+
+	@Override
+	public void updateData(List<MediaData> dataList) {
+		songList.addAll(dataList);
+		songAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void serverConnect() {
+		updateMag.getData(0);
 	}
 }
+
+

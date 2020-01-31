@@ -23,6 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PlayListActivity" />
+        <activity android:name=".PlayingActivity" />
 
         <service android:name=".MediaService" />
         <receiver android:name=".MediaBtnEvent"

@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
+
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            app:layout_scrollFlags="scroll|enterAlways"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="?actionBarSize"
-            android:text="@string/app_name"
-            android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" />
+<!--        <androidx.appcompat.widget.Toolbar-->
+<!--            android:id="@+id/toolbar"-->
+<!--            app:layout_scrollFlags="scroll|enterAlways"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:minHeight="?actionBarSize"-->
+<!--            android:text="@string/app_name"-->
+<!--            android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" />-->
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabs"
@@ -27,11 +30,9 @@
             android:background="?attr/colorPrimary" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/view_pager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <include layout="@layout/layout_main" />
+
 
     <!--<com.google.android.material.floatingactionbutton.FloatingActionButton-->
         <!--android:id="@+id/fab"-->
@@ -40,4 +41,4 @@
         <!--android:layout_gravity="bottom|end"-->
         <!--android:layout_margin="@dimen/fab_margin"-->
         <!--app:srcCompat="@android:drawable/ic_dialog_email" />-->
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</RelativeLayout>
