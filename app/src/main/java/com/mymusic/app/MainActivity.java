@@ -12,11 +12,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.ColorSpace;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -190,10 +194,13 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     DrawableCrossFadeFactory factory;
 
 
+    boolean showBlru=false;
+
+
 
 
     private void initPlayLayout() {
-
+        showBlru=preferences.getBoolean("showBlru",false);
         show=preferences.getBoolean("showCircleView",true);
         timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
         if (!show){
@@ -330,6 +337,20 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void btnTint(ColorStateList...colorStateList){
+//        按钮着色
+        btnPlayPre.setImageTintList(colorStateList[0]);
+        btnPlayPlay.setImageTintList(colorStateList[0]);
+        btnPlayNext.setImageTintList(colorStateList[0]);
+        repeatBtn.setImageTintList(colorStateList[0]);
+
+        //文本着色
+        playSongName.setTextColor(colorStateList[1]);
+        playSongArtist.setTextColor(colorStateList[1]);
+        leftTime.setTextColor(colorStateList[1]);
+        rightTime.setTextColor(colorStateList[1]);
+    }
 
 
 
@@ -363,35 +384,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
             btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
         }
-//        if (binder.getBitmap()!=null){
-//            Bitmap pic=binder.getBitmap();
-//            Bitmap bitmap=Bitmap.createBitmap(pic,pic.getWidth()/4,pic.getHeight()/4,pic.getWidth()/2,pic.getHeight()/2);
-//            Bitmap inputBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false);
-//            //创建将在ondraw中使用到的经过模糊处理后的bitmap
-//            Bitmap outputBitmap = Bitmap.createBitmap(inputBitmap);
-//
-//            //创建RenderScript，ScriptIntrinsicBlur固定写法
-//            RenderScript rs = RenderScript.create(this);
-//            ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
-//
-//            //根据inputBitmap，outputBitmap分别分配内存
-//            Allocation tmpIn = Allocation.createFromBitmap(rs, inputBitmap);
-//            Allocation tmpOut = Allocation.createFromBitmap(rs, outputBitmap);
-//
-//            //设置模糊半径取值0-25之间，不同半径得到的模糊效果不同
-//            blurScript.setRadius(25f);
-//            blurScript.setInput(tmpIn);
-//            blurScript.forEach(tmpOut);
-//
-//            // 模糊 outputBitmap
-//            tmpOut.copyTo(outputBitmap);
-//            // 将模糊后的 outputBitmap 设为目标 View 的背景
-//            playBackground.setBackground(new BitmapDrawable(getResources(), outputBitmap));
-//            rs.destroy();
-//        }
-
-
-
 
 
         FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this,binder.getMediaData().getAlbumID());
@@ -402,16 +394,77 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             bitmap=BitmapFactory.decodeFileDescriptor(fd);
         }
         Palette palette=Palette.from(bitmap).generate();
-
-
         Bitmap bitmap1=Bitmap.createBitmap(bitmap,0,0,10,10);
-        Palette palette1=Palette.from(bitmap1).generate();
+
+
+
+        if (showBlru){          //高斯模糊背景
+            Bitmap pic=binder.getBitmap();
+            Bitmap outputBitmap;
+            Bitmap inputBitmap = null;
+            if (pic==null){
+                Bitmap bitRes=getBitmap(this,R.drawable.ic_audiotrack_black_24dp);
+                Bitmap bitmap2=Bitmap.createBitmap(bitRes,bitRes.getWidth()/4,0,bitRes.getWidth()/2,bitRes.getHeight());
+                inputBitmap = Bitmap.createScaledBitmap(bitmap2, 150, 150, false);
+            }else{
+                Bitmap bitmap2=Bitmap.createBitmap(pic,pic.getWidth()/4,pic.getHeight()/4,pic.getWidth()/2,pic.getHeight()/2);
+                inputBitmap = Bitmap.createScaledBitmap(bitmap2, 150, 150, false);
+            }
+            //创建将在ondraw中使用到的经过模糊处理后的bitmap
+            outputBitmap = Bitmap.createBitmap(inputBitmap);
+
+            //创建RenderScript，ScriptIntrinsicBlur固定写法
+            RenderScript rs = RenderScript.create(this);
+            ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+
+            //根据inputBitmap，outputBitmap分别分配内存
+            Allocation tmpIn = Allocation.createFromBitmap(rs, inputBitmap);
+            Allocation tmpOut = Allocation.createFromBitmap(rs, outputBitmap);
+
+            //设置模糊半径取值0-25之间，不同半径得到的模糊效果不同
+            blurScript.setRadius(25f);
+            blurScript.setInput(tmpIn);
+            blurScript.forEach(tmpOut);
+
+            // 模糊 outputBitmap
+            tmpOut.copyTo(outputBitmap);
+
+        int brightness = -30; //RGB偏移量，变暗为负数
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0.7f);
+//        matrix.set(new float[]{1, 0, 0, 0, brightness, 0, 1, 0, 0, brightness, 0, 0, 1, 0, brightness, 0, 0, 0, 1, 0});
+        ColorMatrixColorFilter cmcf = new ColorMatrixColorFilter(matrix);
+        Paint paint=new Paint();
+        paint.setColorFilter(cmcf);
+        Canvas canvas=new Canvas(outputBitmap);
+        canvas.drawBitmap(outputBitmap,new Matrix(),paint);
+
+            // 将模糊后的 outputBitmap 设为目标 View 的背景
+            secondSlidePanel.setBackground(new BitmapDrawable(getResources(), outputBitmap));
+            rs.destroy();
+            Palette palette1=Palette.from(outputBitmap).generate();
+            if (ColorUtils.calculateLuminance(outputBitmap.getPixel(0,0))>0.5){
+                btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),
+                        ColorStateList.valueOf(palette.getDarkVibrantColor(palette.getDarkMutedColor(
+                                getResources().getColor(R.color.gray2)))));
+            }else{
+                btnTint(ColorStateList.valueOf(Color.WHITE),ColorStateList.valueOf(palette.getDarkVibrantColor(
+                        palette.getDarkMutedColor(
+                                getResources().getColor(R.color.gray2)))));
+            }
+
+        }else{
+            secondSlidePanel.setBackground(null);
+            btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),ColorStateList.valueOf(palette.getDarkVibrantColor(
+                    palette.getDarkMutedColor(
+                            Color.WHITE))));
+        }
 
 
 
         int color=bitmap1.getPixel(0,0);
 
-        if (color!=0){
+        if (color!=0){      //状态栏图标变色
             int red = Color.red(color);
             int green = Color.green(color);
             int blue = Color.blue(color);
@@ -442,14 +495,15 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
         if (showBottomProgress&&!isPlayLayoutVisible){
-            progressInit();
+            progressInit();     //进度条动画
             if (binder.isPlaying()){
-
+//                设置底部进度条的值
                 bottomLayout.setMax(binder.getMediaplay().getDuration());
                 bottomLayout.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
             }
         }
         if (binder.isPlaying()){
+            //更新进度条状态
             handler.removeCallbacks(runnable);
             handler.post(runnable);
         }else{
@@ -689,17 +743,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                     .setTitle("权限不足")
                     .setMessage("软件运行权限不足，无法正常工作请授权后重试")
                     .setCancelable(false)
-                    .setPositiveButton("去授权", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            initPermission();
-                        }
-                    }).setNegativeButton("退出", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    finish();
-                }
-            }).show();
+                    .setPositiveButton("去授权", (dialog, which) -> initPermission()).setNegativeButton("退出", (dialog, which) -> finish()).show();
         }
     }
 
@@ -896,6 +940,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             }
             showBottomProgress= preferences.getBoolean("showProgress",false);
             show=preferences.getBoolean("showCircleView",true);
+            showBlru=preferences.getBoolean("showBlru",true);
             timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
             if (!show){
                 albumCard.setRadius(DensityUtil.dip2px(this,2));
@@ -911,6 +956,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             }
             showBottomProgress= preferences.getBoolean("showProgress",false);
             show=preferences.getBoolean("showCircleView",true);
+            showBlru=preferences.getBoolean("showBlru",true);
             timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
             if (!show){
                 albumCard.setRadius(DensityUtil.dip2px(this,2));

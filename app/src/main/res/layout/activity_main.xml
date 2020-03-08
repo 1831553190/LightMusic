@@ -54,6 +54,7 @@
         android:id="@+id/playQueueSlide"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:fadeColor="@android:color/transparent"
         android:gravity="bottom"
         app:panelHeight="50dp"
         app:shadowHeight="1dp"
@@ -87,6 +88,7 @@
 
         <LinearLayout
             android:orientation="vertical"
+            android:background="@android:color/transparent"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 <!--            <LinearLayout-->
@@ -102,18 +104,19 @@
                     android:gravity="center"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"/>
-            <androidx.cardview.widget.CardView
-                app:cardElevation="1dp"
+            <FrameLayout
+                android:background="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="80dp">
 
                 <TextView
                     android:text="正在播放"
                     android:gravity="center"
+                    android:background="?attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"/>
 
-            </androidx.cardview.widget.CardView>
+            </FrameLayout>
 
 
 <!--            </LinearLayout>-->
