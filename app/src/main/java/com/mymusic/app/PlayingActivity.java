@@ -123,7 +123,7 @@ public class PlayingActivity extends AppCompatActivity implements View.OnClickLi
         MediaData data=binder.getMediaData();
         Uri imgPath=MediaFactory.getAlbumArtGetDescriptorUri(getApplicationContext(),data.getAlbumID());
         Glide.with(getApplicationContext()).load(imgPath)
-                .placeholder(R.drawable.cover_background)
+                .placeholder(R.mipmap.cover_pic)
                 .transition(DrawableTransitionOptions.withCrossFade()).into(img);
         songName.setText(data.getTitle());
         songArtist.setText(data.getArtist());

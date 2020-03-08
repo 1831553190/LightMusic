@@ -53,12 +53,7 @@ public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.Holder> {
 //				.into(holder.cover);
 		holder.title.setText(artistDataList.get(position).getArtist());
 		holder.artist.setText(artistDataList.get(position).getNumberOfTracks()+"首曲目");
-		holder.itemView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onItemClickListener.onItemClick(position);
-			}
-		});
+		holder.itemView.setOnClickListener(v -> onItemClickListener.onItemClick(position));
 	}
 	
 	@Override

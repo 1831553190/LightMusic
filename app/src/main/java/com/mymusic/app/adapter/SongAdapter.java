@@ -91,7 +91,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 		Glide.with(holder.itemView)
 				.load(MediaFactory.getAlbumArtGetDescriptorUri(context,tempList.get(position).getAlbumID()))
 				.apply(RequestOptions.bitmapTransform(new RoundedCorners(2)).override(200,200))
-				.placeholder(R.drawable.cover_background)
+				.placeholder(R.mipmap.cover_pic)
 				.transition(DrawableTransitionOptions.withCrossFade())
 				.into(holder.imgAlbumCover);
 		holder.itemView.setOnClickListener(v -> {

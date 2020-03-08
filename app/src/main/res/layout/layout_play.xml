@@ -37,7 +37,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:cardCornerRadius="2dp"
-        app:cardElevation="12dp"
+        app:cardElevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -59,129 +59,124 @@
 <!--        android:background="#00ffffff"-->
 
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/bottomPlayLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottomPlayLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/includeTopLayout">
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="50dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@+id/repeatBtn"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <LinearLayout
-                android:id="@+id/linearLayout"
-                android:layout_width="0dp"
-                android:layout_height="60dp"
-                android:layout_marginStart="50dp"
-                android:layout_marginEnd="50dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                app:layout_constraintTop_toBottomOf="@+id/seekBar"
-                app:layout_constraintBottom_toTopOf="@+id/repeatBtn"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-
-                <ImageView
-                    android:id="@+id/btnPlayPre"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:padding="16dp"
-                    app:srcCompat="@drawable/ic_skip_previous_black_24dp" />
-
-                <ImageView
-                    android:id="@+id/btnPlayPlay"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:minHeight="60dp"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:padding="16dp"
-                    app:srcCompat="@drawable/ic_play_arrow_black_24dp" />
-
-                <ImageView
-                    android:id="@+id/btnPlayNext"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:padding="16dp"
-                    app:srcCompat="@drawable/ic_skip_next_black_24dp" />
-            </LinearLayout>
-
-
-
-
-
-
-
-
-            <!--            <com.mymusic.app.view.SmoothSeekBar-->
-<!--                android:id="@+id/seekBar"-->
-<!--                android:layout_width="0dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginTop="32dp"-->
-<!--                android:minWidth="100dp"-->
-<!--                app:layout_constraintEnd_toStartOf="@+id/rightTime"-->
-<!--                app:layout_constraintStart_toEndOf="@+id/leftTime"-->
-<!--                app:layout_constraintTop_toTopOf="parent" />-->
-
-            <com.mymusic.app.view.MySmoothSeekBar
-                android:id="@+id/seekBar"
-                android:layout_width="0dp"
-                android:layout_height="30dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="8dp"
-                android:padding="12dp"
-                app:layout_constraintEnd_toStartOf="@+id/rightTime"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toEndOf="@+id/leftTime"
-                app:layout_constraintTop_toTopOf="parent"
-                app:updataAPPBarHeight="2dp"
-                app:updataAPPTextVisibility="false" />
-
-            <TextView
-                android:id="@+id/leftTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                app:layout_constraintBottom_toBottomOf="@+id/seekBar"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/seekBar"
-                android:layout_marginLeft="8dp" />
-
-            <TextView
-                android:id="@+id/rightTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                app:layout_constraintBottom_toBottomOf="@+id/seekBar"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/seekBar"
-                android:layout_marginRight="8dp" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/seekBar">
 
 
             <ImageView
-                android:id="@+id/repeatBtn"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginBottom="8dp"
+                android:id="@+id/btnPlayPre"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
-                app:layout_constraintBottom_toBottomOf="@+id/bottomPlayLayout"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:srcCompat="@drawable/ic_baseline_notes_24" />
+                android:padding="16dp"
+                app:srcCompat="@drawable/ic_skip_previous_black_24dp" />
+
+            <ImageView
+                android:id="@+id/btnPlayPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:minHeight="60dp"
+                android:padding="16dp"
+                app:srcCompat="@drawable/ic_play_arrow_black_24dp" />
+
+            <ImageView
+                android:id="@+id/btnPlayNext"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:padding="16dp"
+                app:srcCompat="@drawable/ic_skip_next_black_24dp" />
+        </LinearLayout>
 
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        <!--            <com.mymusic.app.view.SmoothSeekBar-->
+        <!--                android:id="@+id/seekBar"-->
+        <!--                android:layout_width="0dp"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_marginTop="32dp"-->
+        <!--                android:minWidth="100dp"-->
+        <!--                app:layout_constraintEnd_toStartOf="@+id/rightTime"-->
+        <!--                app:layout_constraintStart_toEndOf="@+id/leftTime"-->
+        <!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+        <com.mymusic.app.view.MySmoothSeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:padding="12dp"
+            app:layout_constraintEnd_toStartOf="@+id/rightTime"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/leftTime"
+            app:layout_constraintTop_toTopOf="parent"
+            app:updataAPPBarHeight="2dp"
+            app:updataAPPTextVisibility="false" />
+
+        <TextView
+            android:id="@+id/leftTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/seekBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/seekBar" />
+
+        <TextView
+            android:id="@+id/rightTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/seekBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/seekBar" />
+
+
+        <ImageView
+            android:id="@+id/repeatBtn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginBottom="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="@+id/bottomPlayLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_baseline_notes_24" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 

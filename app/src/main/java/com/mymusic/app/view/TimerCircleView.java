@@ -55,7 +55,6 @@ public final class TimerCircleView extends View {
     private final Paint mFill = new Paint();
     private final RectF mArcRect = new RectF();
 
-    private Timer mTimer;
     int elapsedRealtime;
     float dua;
     float progress;

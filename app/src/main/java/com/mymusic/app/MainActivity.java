@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -46,6 +47,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory;
 import com.google.android.material.snackbar.Snackbar;
 import com.mymusic.app.adapter.SongAdapter;
 import com.mymusic.app.bean.MediaData;
@@ -68,6 +70,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -184,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
     int repeatType=-1;
     boolean show=false;
+    DrawableCrossFadeFactory factory;
 
 
 
@@ -254,6 +258,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
             }
         });
+        factory = new DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build();
+
         queueList=new ArrayList<>();
         tempList=new ArrayList<>();
         SongAdapter queueAdapter=new SongAdapter(this,queueList,tempList);
@@ -387,6 +393,40 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
 
+
+        FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this,binder.getMediaData().getAlbumID());
+        Bitmap bitmap = null;
+        if (fd==null){
+            bitmap=getBitmap(this,R.mipmap.cover_pic);
+        }else{
+            bitmap=BitmapFactory.decodeFileDescriptor(fd);
+        }
+        Palette palette=Palette.from(bitmap).generate();
+
+
+        Bitmap bitmap1=Bitmap.createBitmap(bitmap,0,0,10,10);
+        Palette palette1=Palette.from(bitmap1).generate();
+
+
+
+        int color=bitmap1.getPixel(0,0);
+
+        if (color!=0){
+            int red = Color.red(color);
+            int green = Color.green(color);
+            int blue = Color.blue(color);
+            if(ColorUtils.calculateLuminance(color)>0.5f) { //浅色
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }else{
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            }
+
+        }
+
+
+
+
+
         secondProgressInit();
         MediaData mediaData=binder.getMediaData();
         playSongName.setText(mediaData.getTitle());
@@ -396,14 +436,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             MediaPlayer mediaPlayer=binder.getMediaplay();
             timerCircleView.setMax(mediaPlayer.getDuration());
             progressBar.setMax(mediaPlayer.getDuration());
-            FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this,binder.getMediaData().getAlbumID());
-            Bitmap bitmap = null;
-            if (fd==null){
-                bitmap=getBitmap(this,R.drawable.cover_background);
-            }else{
-                bitmap=BitmapFactory.decodeFileDescriptor(fd);
-            }
-            Palette palette=Palette.from(bitmap).generate();
+
             timerCircleView.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
         }
 
@@ -411,15 +444,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         if (showBottomProgress&&!isPlayLayoutVisible){
             progressInit();
             if (binder.isPlaying()){
-                FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this,binder.getMediaData().getAlbumID());
-                Bitmap bitmap = null;
-                if (fd==null){
-                    bitmap=getBitmap(this,R.drawable.cover_background);
-                }else{
-                    bitmap=BitmapFactory.decodeFileDescriptor(fd);
-                }
+
                 bottomLayout.setMax(binder.getMediaplay().getDuration());
-                Palette palette=Palette.from(bitmap).generate();
                 bottomLayout.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
             }
         }
@@ -720,15 +746,18 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             }
         }
 
+
         Glide.with(this)
                 .load(MediaFactory.getAlbumArtGetDescriptorUri(this, data.getAlbumID()))
-                .placeholder(R.drawable.cover_background)
-                .transition(DrawableTransitionOptions.withCrossFade())
+                .placeholder(albumImg.getDrawable())
+                .transition(DrawableTransitionOptions.withCrossFade(factory))
+                .error(R.drawable.cover_background)
                 .into(albumImg);
         Glide.with(this)
                 .load(MediaFactory.getAlbumArtGetDescriptorUri(this, data.getAlbumID()))
-                .placeholder(R.drawable.cover_background)
-                .transition(DrawableTransitionOptions.withCrossFade())
+                .placeholder(playAlbumImg.getDrawable())
+                .transition(DrawableTransitionOptions.withCrossFade(factory))
+                .error(R.drawable.cover_background)
                 .into(playAlbumImg);
         artist.setText(data.getArtist());
         songName.setText(data.getTitle());
