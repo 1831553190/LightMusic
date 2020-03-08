@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.mymusic.app.MediaFactory;
 import com.mymusic.app.R;
 import com.mymusic.app.bean.AlbumData;
 
@@ -52,7 +53,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.Holder> {
 	@Override
 	public void onBindViewHolder(@NonNull Holder holder, final int position) {
 		Glide.with(context)
-				.load(albumDataList.get(position).getAlbumArtCover())
+				.load(MediaFactory.getAlbumArtGetDescriptorUri(context,albumDataList.get(position).getAlbumId()))
 				.transition(DrawableTransitionOptions.withCrossFade())
 				.into(holder.cover);
 		holder.title.setText(albumDataList.get(position).getAlbumTitle());

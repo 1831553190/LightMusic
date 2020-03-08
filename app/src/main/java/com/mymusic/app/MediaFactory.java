@@ -17,6 +17,7 @@ import com.mymusic.app.bean.DataBean;
 import com.mymusic.app.bean.MediaData;
 
 import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,8 +97,8 @@ public class MediaFactory {
 		return albumDataList;
 	}
 	
-	
-	public static Uri getAlbumArtGetDescriptor(Context context,long albumId){
+
+	public static Uri getAlbumArtGetDescriptorUri(Context context, long albumId){
 		Uri uri = Uri.parse("content://media/external/audio/albumart");
 		FileDescriptor fileDescriptor = null;
 		Uri contentUris = null;
@@ -113,6 +114,24 @@ public class MediaFactory {
 //			}
 		}
 		return contentUris;
+	}
+	public static FileDescriptor getAlbumArtGetDescriptor(Context context,long albumId){
+		Uri uri = Uri.parse("content://media/external/audio/albumart");
+		FileDescriptor fileDescriptor = null;
+		Uri contentUris = null;
+		if (albumId!=0) {
+			 contentUris = ContentUris.withAppendedId(uri, albumId);
+			try {
+				ParcelFileDescriptor parcelFileDescriptor = context.getContentResolver().openFileDescriptor(contentUris, "r");
+				if (parcelFileDescriptor != null) {
+					fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+					return fileDescriptor;
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 	
 	

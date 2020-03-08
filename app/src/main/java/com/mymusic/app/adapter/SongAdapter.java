@@ -1,9 +1,12 @@
 package com.mymusic.app.adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,22 +20,55 @@ import com.bumptech.glide.request.RequestOptions;
 import com.mymusic.app.MediaFactory;
 import com.mymusic.app.R;
 import com.mymusic.app.bean.MediaData;
+import com.mymusic.app.fragment.FragmentIndex;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder>{
-	List<MediaData> songList;
+public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implements Filterable {
+	List<MediaData> songList,tempList;
+	;
 	SongAdapter.OnItemClickListener onItemClickListener;
 	Context context;
 	
-	MediaFactory mediaFactory;
-//	private static final Uri albumArtUri = Uri.parse("content://media/external/audio/albumart");
-	
-	public SongAdapter(Context context, List<MediaData> songList){
+	public SongAdapter(Context context, List<MediaData> songList,List<MediaData> tempList){
 		this.songList=songList;
 		this.context=context;
+		this.tempList=tempList;
 	}
-	
+
+
+	@Override
+	public Filter getFilter() {
+		return new Filter() {
+			@Override
+			protected FilterResults performFiltering(CharSequence constraint) {
+				if (constraint.length()==0){
+					tempList.clear();
+					tempList.addAll(songList);
+				}else{
+					tempList.clear();
+					String conString=constraint.toString().toUpperCase();
+					for (MediaData data:songList){
+						if ((data.getTitle()!=null&&data.getTitle().toUpperCase().contains(conString))||
+								(data.getArtist()!=null&&data.getArtist().toUpperCase().contains(conString))||
+								(data.getAlbumKey()!=null&&data.getAlbumKey().toUpperCase().contains(conString))) {
+							tempList.add(data);
+						}
+					}
+				}
+
+				FilterResults filterResults = new FilterResults();
+				filterResults.values = tempList;
+				return filterResults;
+			}
+			@Override
+			protected void publishResults(CharSequence constraint, FilterResults results) {
+				notifyDataSetChanged();
+			}
+		};
+	}
+
 	public interface OnItemClickListener{
 		void onItemClick(int position);
 	}
@@ -40,39 +76,37 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder>{
 	public void setOnItemClickListener(SongAdapter.OnItemClickListener onItemClickListener){
 		this.onItemClickListener=onItemClickListener;
 	}
-	
-	
+
 	@NonNull
 	@Override
 	public SongAdapter.Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 		View view= LayoutInflater.from(context).inflate(R.layout.main_item,parent,false);
-		mediaFactory=new MediaFactory();
 		return new SongAdapter.Holder(view);
 	}
 	
 	@Override
 	public void onBindViewHolder(@NonNull SongAdapter.Holder holder, final int position) {
-		
-		holder.song_title.setText(songList.get(position).getTitle());
-		holder.song_artist.setText(songList.get(position).getArtist());
-		Glide.with(context)
-				.load(mediaFactory.getAlbumArtGetDescriptor(context,songList.get(position).getAlbumID()))
+		holder.song_title.setText(tempList.get(position).getTitle());
+		holder.song_artist.setText(tempList.get(position).getArtist());
+		Glide.with(holder.itemView)
+				.load(MediaFactory.getAlbumArtGetDescriptorUri(context,tempList.get(position).getAlbumID()))
 				.apply(RequestOptions.bitmapTransform(new RoundedCorners(2)).override(200,200))
-				.error(R.drawable.cover_background)
+				.placeholder(R.drawable.cover_background)
 				.transition(DrawableTransitionOptions.withCrossFade())
 				.into(holder.imgAlbumCover);
-		holder.itemView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onItemClickListener.onItemClick(position);
+		holder.itemView.setOnClickListener(v -> {
+			for (int i=0;i<songList.size();i++){
+				if (tempList.get(position).getId()==songList.get(i).getId()){
+					onItemClickListener.onItemClick(i);
+					return;
+				}
 			}
 		});
 	}
-	
 
 	@Override
 	public int getItemCount() {
-		return songList.size();
+		return tempList.size();
 	}
 	
 	class Holder extends RecyclerView.ViewHolder{

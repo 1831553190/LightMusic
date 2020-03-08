@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:title="进度条流畅性"
+        android:key="level"
+        android:dialogTitle="进度条流畅性"
+        android:entries="@array/PLevel"
+        android:entryValues="@array/PLevel_value"
+        android:defaultValue="100"
+        android:summary="改变进度条的刷新率，刷新率越快可能会导致设备加速耗电"/>
+
+    <CheckBoxPreference
+        android:key="showCircleView"
+        android:defaultValue="true"
+        android:enabled="false"
+        android:summary="切换播放界面的专辑图"
+        android:title="使用圆形专辑图" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="showProgress"
+        android:summary="在主界面的底部播放栏显示播放进度(可能会加速耗电)"
+        android:title="底部播放栏显示进度" />
+<!--    <CheckBoxPreference-->
+<!--        android:defaultValue="false"-->
+<!--        android:key="bottomMode"-->
+<!--        android:summary="在主界面的底部播放栏显示播放进度(可能会加速耗电)"-->
+<!--        android:title="底部播放栏显示进度" />-->
+
+</PreferenceScreen>

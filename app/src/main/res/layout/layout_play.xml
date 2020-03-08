@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/play_background"
@@ -20,56 +21,66 @@
     <!--        app:layout_constraintStart_toStartOf="parent"-->
     <!--        app:layout_constraintTop_toTopOf="parent" />-->
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/albumCardView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        app:cardElevation="6dp"
-        app:layout_constraintBottom_toTopOf="@+id/cardView3"
+
+    <com.mymusic.app.view.TimerCircleView
+        android:id="@+id/timeCircleView"
+        android:layout_width="212dp"
+        android:layout_height="212dp"
+        app:layout_constraintBottom_toBottomOf="@+id/albumCardView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/include">
+        app:layout_constraintTop_toTopOf="@+id/albumCardView" />
 
-        <ImageView
+
+    <com.mymusic.app.view.MyCardView
+        android:id="@+id/albumCardView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.mymusic.app.view.MyImageView
             android:id="@+id/playImg"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:srcCompat="@drawable/cover_background" />
-    </androidx.cardview.widget.CardView>
+    </com.mymusic.app.view.MyCardView>
 
-    <include
-        android:id="@+id/include"
-        layout="@layout/layout_play_top"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <include layout="@layout/layout_play_top"/>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardView3"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        app:cardElevation="6dp"
-        android:background="#66ffffff"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+<!--    <androidx.cardview.widget.CardView-->
+<!--        android:id="@+id/bottomPlayLayout"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="200dp"-->
+<!--        app:cardElevation="0dp"-->
+<!--        android:background="#00ffffff"-->
+
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:background="#66ffffff"
+            android:id="@+id/bottomPlayLayout"
             android:layout_width="match_parent"
-            android:layout_height="199dp">
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <LinearLayout
                 android:id="@+id/linearLayout"
                 android:layout_width="0dp"
-                android:layout_height="80dp"
+                android:layout_height="60dp"
                 android:layout_marginStart="50dp"
                 android:layout_marginEnd="50dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center"
                 android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/seekBar"
+                app:layout_constraintBottom_toTopOf="@+id/repeatBtn"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/seekBar">
+                app:layout_constraintStart_toStartOf="parent">
 
 
                 <ImageView
@@ -86,6 +97,7 @@
                     android:id="@+id/btnPlayPlay"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
+                    android:minHeight="60dp"
                     android:layout_weight="1"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
@@ -104,15 +116,36 @@
             </LinearLayout>
 
 
-            <com.mymusic.app.view.SmoothSeekBar
+
+
+
+
+
+
+            <!--            <com.mymusic.app.view.SmoothSeekBar-->
+<!--                android:id="@+id/seekBar"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="32dp"-->
+<!--                android:minWidth="100dp"-->
+<!--                app:layout_constraintEnd_toStartOf="@+id/rightTime"-->
+<!--                app:layout_constraintStart_toEndOf="@+id/leftTime"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+            <com.mymusic.app.view.MySmoothSeekBar
                 android:id="@+id/seekBar"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:minWidth="100dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="8dp"
+                android:padding="12dp"
                 app:layout_constraintEnd_toStartOf="@+id/rightTime"
+                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toEndOf="@+id/leftTime"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:updataAPPBarHeight="2dp"
+                app:updataAPPTextVisibility="false" />
 
             <TextView
                 android:id="@+id/leftTime"
@@ -121,7 +154,8 @@
                 android:layout_marginStart="8dp"
                 app:layout_constraintBottom_toBottomOf="@+id/seekBar"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/seekBar" />
+                app:layout_constraintTop_toTopOf="@+id/seekBar"
+                android:layout_marginLeft="8dp" />
 
             <TextView
                 android:id="@+id/rightTime"
@@ -130,12 +164,28 @@
                 android:layout_marginEnd="8dp"
                 app:layout_constraintBottom_toBottomOf="@+id/seekBar"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/seekBar" />
+                app:layout_constraintTop_toTopOf="@+id/seekBar"
+                android:layout_marginRight="8dp" />
+
+
+            <ImageView
+                android:id="@+id/repeatBtn"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginBottom="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                app:layout_constraintBottom_toBottomOf="@+id/bottomPlayLayout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:srcCompat="@drawable/ic_baseline_notes_24" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.cardview.widget.CardView>
+
+
+<!--    </androidx.cardview.widget.CardView>-->
 
     <!--    <TextView-->
     <!--        android:id="@+id/playSongName"-->

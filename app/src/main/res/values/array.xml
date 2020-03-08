@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="PLevel">
+        <item>极致流畅(1ms(可能会加速耗电))</item>
+        <item>流畅(16ms)</item>
+        <item>普通(100ms)</item>
+        <item>一般(500ms)</item>
+        <item>正常(1s)</item>
+    </string-array>
+    <string-array name="PLevel_value">
+        <item>1</item>
+        <item>16</item>
+        <item>100</item>
+        <item>500</item>
+        <item>1000</item>
+    </string-array>
+</resources>

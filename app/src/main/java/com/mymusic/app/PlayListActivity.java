@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
@@ -25,13 +24,13 @@ import java.util.List;
 
 public class PlayListActivity extends AppCompatActivity {
 	RecyclerView recyclerView;
-	public List<MediaData> songList;
+	public List<MediaData> songList,tempList;
 	SongAdapter songAdapter;
 	MediaService mediaService;
 	MediaService.Binder binder;
 	Intent intent;
 	ImageView cover;
-	
+
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -42,17 +41,19 @@ public class PlayListActivity extends AppCompatActivity {
 		String type=intent.getStringExtra("type");
 		long id=intent.getLongExtra("id",0);
 		songList=new ArrayList<>();
+		tempList=new ArrayList<>();
 		if (type.equals(DataBean.TYPE_ALBUM)){
 			songList= MediaFactory.getMediaList(this,DataBean.TYPE_ALBUM,id);
 		}else{
 			songList= MediaFactory.getMediaList(this,DataBean.TYPE_ARTIST,id);
 		}
 		Glide.with(this)
-				.load(MediaFactory.getAlbumArtGetDescriptor(this,songList.get(0).getAlbumID()))
-				.error(R.drawable.cover_background)
+				.load(MediaFactory.getAlbumArtGetDescriptorUri(this,songList.get(0).getAlbumID()))
+				.placeholder(R.drawable.cover_background)
 				.into(cover);
 		recyclerView=findViewById(R.id.main_list);
-		songAdapter =new SongAdapter(this,songList);
+		tempList.addAll(songList);
+		songAdapter =new SongAdapter(this,songList,tempList);
 		recyclerView.setAdapter(songAdapter);
 		recyclerView.setLayoutManager(new LinearLayoutManager(this));
 		bindService(new Intent(this,MediaService.class),serviceConnection, Context.BIND_AUTO_CREATE);
@@ -64,9 +65,12 @@ public class PlayListActivity extends AppCompatActivity {
 //		});
 		songAdapter.setOnItemClickListener(position -> {
 			binder.setSongPlayList(songList);
-			binder.play(position);
+			binder.playList(songList,position);
 		});
 	}
+
+
+
 	ServiceConnection serviceConnection=new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
@@ -75,7 +79,6 @@ public class PlayListActivity extends AppCompatActivity {
 		
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-
 		}
 	};
 

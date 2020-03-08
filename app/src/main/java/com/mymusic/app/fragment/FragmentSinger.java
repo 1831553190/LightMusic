@@ -43,7 +43,7 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		if (!isInit){
-			view = inflater.inflate(R.layout.fragment_main,container,false);
+			view = inflater.inflate(R.layout.fragment_recycler,container,false);
 			init(view);
 			isInit=true;
 		}
@@ -57,25 +57,10 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 		recyclerView.setAdapter(songAdapter);
 //		getContext().bindService(new Intent(getContext(), MediaService.class), serviceConnection, Context.BIND_AUTO_CREATE);
 		songAdapter.setOnItemClickListener(this);
-		if (artistList.isEmpty()){
+		if (updateMag.getBider()!=null&&artistList.isEmpty()){
 			updateMag.getData(2);
 		}
 	}
-//
-//	ServiceConnection serviceConnection=new ServiceConnection() {
-//		@Override
-//		public void onServiceConnected(ComponentName name, IBinder service) {
-//			binder= (MediaService.Binder) service;
-//			artistList.addAll(binder.getArtistList());
-//			songAdapter.notifyDataSetChanged();
-//
-//		}
-//
-//		@Override
-//		public void onServiceDisconnected(ComponentName name) {
-//
-//		}
-//	};
 	
 	@Override
 	public void onItemClick(int position) {
@@ -84,7 +69,6 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 		intent.putExtra("id",artistList.get(position).getId());
 		startActivity(intent);
 	}
-
 
 	@Override
 	public void onAttach(Context context) {
@@ -97,7 +81,15 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-//		getContext().unbindService(serviceConnection);
+	}
+
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (updateMag.getBider()!=null&&artistList.isEmpty()){
+			updateMag.getData(2);
+		}
 	}
 
 	@Override
@@ -109,7 +101,8 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 
 	@Override
 	public void serverConnect() {
-		updateMag.getData(2);
-
+		if (artistList.isEmpty()){
+			updateMag.getData(2);
+		}
 	}
 }

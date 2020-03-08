@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PlayListActivity">
@@ -12,11 +11,10 @@
         android:id="@+id/playlist_cover"
         app:srcCompat="@drawable/cover_background"
         android:scaleType="centerCrop"
-        android:fitsSystemWindows="true"
         android:layout_width="match_parent"
         style="?android:windowBackground"
         android:elevation="4dp"
         android:layout_height="200dp" />
-    <include layout="@layout/fragment_main" />
+    <include layout="@layout/fragment_recycler" />
 
 </LinearLayout>

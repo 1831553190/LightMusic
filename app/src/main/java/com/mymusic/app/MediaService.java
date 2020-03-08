@@ -18,12 +18,15 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,8 +37,12 @@ import com.mymusic.app.bean.Artist;
 import com.mymusic.app.bean.DataBean;
 import com.mymusic.app.bean.MediaData;
 import com.mymusic.app.inter.ServiceUpdate;
+import com.mymusic.app.view.PlayOutActivity;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileDescriptor;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,8 +69,11 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	private int state=0;
 	Notification.Action action;
 	boolean isCreate=true;
-	
-	
+	private final static int MEDIA_ID=7;
+
+	Bitmap iBitmap;
+	ActionOps actionOps;
+
 
 	private SharedPreferences sharePreference;
 	
@@ -71,6 +81,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	public class Binder extends android.os.Binder{
 
 		HashMap<String,ServiceUpdate> listeners=new HashMap<>();
+		private int repeatType;
 
 
 		public void updateListener(){
@@ -95,6 +106,9 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		public List<MediaData> getMediaList(){
 			return mediaDataList;
 		}
+		public List<MediaData> getPlayList(){
+			return playList;
+		}
 		public List<MediaData> getMediaDataList(){
 			return mediaDataList;
 		}
@@ -105,11 +119,27 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			return artistList;
 		}
 		public MediaData getMediaData(){
-			if (!mediaDataList.isEmpty()){
-				return mediaDataList.get(currentPosition);
+			if (!playList.isEmpty()){
+				return playList.get(currentPosition);
 			}
 			return null;
 		}
+
+		public void playList(List<MediaData> dataList,int postion){
+			if (dataList.equals(playList)&&postion==currentPosition){
+				playAndPause();
+			}else if (dataList.equals(playList)){
+				play(postion);
+			}else{
+				currentPosition=postion;
+				playList.clear();
+				playList.addAll(dataList);
+				play(currentPosition);
+			}
+
+		}
+
+
 
 		public void play(int position){
 //		currentPosition=position;
@@ -126,14 +156,14 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 					startForegroundService(new Intent(MediaService.this,MediaService.class));
 				}
-				startForeground(1,notifyMedia(position));
+				startForeground(MEDIA_ID,notifyMedia(position));
 				currentPosition=position;
 
 			}
 
 			private void stop(){
 				stopForeground(false);
-				notificationManager.notify(1,notifyMedia(currentPosition));
+				notificationManager.notify(MEDIA_ID,notifyMedia(currentPosition));
 			}
 
 		
@@ -161,16 +191,86 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			if (mediaPlayer.isPlaying()){
 				mediaPlayer.pause();
 				stopForeground(false);
-				notificationManager.notify(1,notifyMedia(currentPosition));
+				notificationManager.notify(MEDIA_ID,notifyMedia(currentPosition));
 				sharePreference.edit().putInt("position",currentPosition).apply();
 			}else{
 				mediaPlayer.start();
-				startForeground(1,notifyMedia(currentPosition));
+				startForeground(MEDIA_ID,notifyMedia(currentPosition));
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 					startForegroundService(new Intent(MediaService.this,MediaService.class));
 				}
 			}
 			binder.updateListener();
+		}
+
+//		public void play(String path){
+//			MediaMetadataRetriever mediaMetadataRetriever=new MediaMetadataRetriever();
+//			mediaMetadataRetriever.setDataSource(path);
+//			playList.clear();
+//			if (currentPosition==-1)
+//				currentPosition=0;
+//			try {
+//				mediaPlayer.reset();
+//				mediaPlayer.setDataSource(path);
+//				mediaPlayer.prepare();
+//				mediaPlayer.start();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//				startForegroundService(new Intent(MediaService.this,MediaService.class));
+//			}
+//			startForeground(MEDIA_ID,notifyMedia(0));
+//		}
+
+		public void play(Uri uri){
+			playList.clear();
+			try {
+
+
+				MediaData data = new MediaData();
+				MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+				if (uri.getScheme().equals("file")) {
+					mediaMetadataRetriever.setDataSource(uri.getPath());
+					data.setFilePath(uri.getPath());
+				} else {
+					mediaMetadataRetriever.setDataSource(MediaService.this, uri);
+					playUri(uri);
+				}
+				currentPosition = 0;
+				String title = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+				data.setTitle(title == null || title.isEmpty() ? "无标题" : title);
+				data.setAlbum(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST));
+				data.setArtist(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
+				data.setDuration(Long.parseLong(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)));
+				playList.add(data);
+				byte[] bitma = mediaMetadataRetriever.getEmbeddedPicture();
+				if (bitma != null) {
+					InputStream inputStream = new ByteArrayInputStream(bitma);
+					iBitmap = BitmapFactory.decodeStream(inputStream);
+				}
+				if (uri.getScheme().equals("file")) {
+					play(0);
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+
+//			if (currentPosition==-1)
+//				currentPosition=0;
+//			try {
+//				mediaPlayer.reset();
+//				mediaPlayer.setDataSource(MediaService.this,uri);
+//				mediaPlayer.prepare();
+//				mediaPlayer.start();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//				startForegroundService(new Intent(MediaService.this,MediaService.class));
+//			}
+//			startForeground(MEDIA_ID,notifyMedia(0));
+
 		}
 
 		public void playPrevious(){
@@ -184,7 +284,6 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		public void playNext(){
 			if(currentPosition>=playList.size()-1){
 				currentPosition=0;
-
 			}else{
 				++currentPosition;
 			}
@@ -192,13 +291,13 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 
 		}
 
-		private void play() {
+		private void playUri(Uri uri) {
 			if (currentPosition==-1){
 				currentPosition=0;
 			}
 			try{
 				mediaPlayer.reset();
-				mediaPlayer.setDataSource(playList.get(currentPosition).getFilePath());
+				mediaPlayer.setDataSource(MediaService.this,uri);
 				mediaPlayer.prepare();
 				mediaPlayer.start();
 			} catch (IOException e) {
@@ -210,6 +309,20 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		}
 
 
+		public Bitmap getBitmap() {
+			return bitmap1;
+		}
+
+		public int getCurrentPosition() {
+			return currentPosition;
+		}
+
+		public void setRepeatType(int repeatType) {
+			this.repeatType=repeatType;
+		}
+		public int getRepeatType(){
+			return repeatType;
+		}
 	}
 	
 	
@@ -224,19 +337,33 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	
 	@Override
 	public void onCompletion(MediaPlayer mp) {
-		if (++currentPosition<=playList.size()-1){
-			binder.play(currentPosition);
-		}else{
-			currentPosition=0;
-			binder.stop();
-			binder.updateListener();
+		switch (binder.getRepeatType()){
+			case 0:
+				if (++currentPosition<=playList.size()-1){
+					binder.play(currentPosition);
+				}else{
+					currentPosition=0;
+					binder.stop();
+					binder.updateListener();
+				}
+				break;
+			case 1:
+				binder.playNext();
+				break;
+			case 2:
+				binder.play(currentPosition);
+				break;
 		}
+
 	}
 	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		
+		stopForeground(true);
+		mediaPlayer.release();
+		unregisterReceiver(actionOps);
+
 	}
 	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void update(){
@@ -295,7 +422,8 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		intentFilter.addAction(DataBean.ACTION_PLAYANDPASE);
 		intentFilter.addAction(DataBean.ACTION_PLAYPRIVAOUS);
 		intentFilter.addAction(DataBean.ACTION_PLAYNEXT);
-		registerReceiver(new ActionOps(),intentFilter);
+		actionOps = new ActionOps();
+		registerReceiver(actionOps,intentFilter);
 		sharePreference= PreferenceManager.getDefaultSharedPreferences(this);
 		currentPosition=sharePreference.getInt("position",0);
 		Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
@@ -315,7 +443,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			mediaSession.setMetadata(mediaMetadata.build());
 			playbackState=new PlaybackState.Builder().setState(PlaybackState.STATE_PLAYING,currentPosition,System.currentTimeMillis()).setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS).build();
 			mediaSession.setPlaybackState(playbackState);
-			mediaSession.setCallback(playCallBack);
+//			mediaSession.setCallback(playCallBack);
 
 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -327,52 +455,50 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 }
 
 
-	@RequiresApi (Build.VERSION_CODES.LOLLIPOP)
 	private MediaSession.Callback playCallBack=new MediaSession.Callback() {
 		@Override
 		public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
 			return new MediaBtnEvent().handleEvent(MediaService.this,mediaButtonIntent);
 		}
-		
+
 		@Override
 		public void onPrepare() {
 			super.onPrepare();
 		}
-		
+
 		@Override
 		public void onPlay() {
 			super.onPlay();
 		}
-		
+
 		@Override
 		public void onPause() {
 			super.onPause();
 		}
-		
+
 		@Override
 		public void onSkipToNext() {
 			super.onSkipToNext();
 		}
-		
+
 		@Override
 		public void onStop() {
 			super.onStop();
 		}
-		
+
 		@Override
 		public void onSeekTo(long pos) {
 			super.onSeekTo(pos);
 		}
 	};
-	
 
 
 	
-
 
 	
 	
 	public static final Bitmap drawableToBitmap(Drawable drawable) {
+		MediaPlayer mediaPlayer;
 		Bitmap bitmap = Bitmap.createBitmap( drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(),
 				drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
 		Canvas canvas = new Canvas(bitmap);
@@ -385,14 +511,15 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		int icon=mediaPlayer.isPlaying()?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp;
 		action = new Notification.Action(R.drawable.ic_pause_black_24dp,"play",null);
 		Intent intent=new Intent(this,MainActivity.class);
-		String imgPath=MediaFactory.getAlbumArtCover(this,playList.get(position).getAlbumID());
+		FileDescriptor imgPath=MediaFactory.getAlbumArtGetDescriptor(this,playList.get(position).getAlbumID());
 		if (imgPath!=null){
-			bitmap1=BitmapFactory.decodeFile(imgPath);
-		}else{
+			bitmap1=BitmapFactory.decodeFileDescriptor(imgPath);
+		}else if(iBitmap!=null){
+			bitmap1=iBitmap;
+		} else{
 			bitmap1=null;
 		}
 		PendingIntent pendingIntent= (PendingIntent) PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-		
 		notifiBuider = new Notification.Builder(this)
 				.setSmallIcon(R.drawable.ic_audiotrack_black_24dp)
 				.setLargeIcon(bitmap1)
@@ -431,10 +558,12 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 						binder.playNext();
 						break;
 				}
-				
+
 			}
 		}
 	}
+
+
 	
 	
 }

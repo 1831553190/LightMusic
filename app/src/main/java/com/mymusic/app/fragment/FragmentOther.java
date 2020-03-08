@@ -11,16 +11,17 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.mymusic.app.MainActivity;
-import com.mymusic.app.inter.ActivityToFragment;
 import com.mymusic.app.PlayListActivity;
+import com.mymusic.app.bean.DataBean;
+import com.mymusic.app.inter.ActivityToFragment;
 import com.mymusic.app.R;
 import com.mymusic.app.adapter.AlbumAdapter;
 import com.mymusic.app.bean.AlbumData;
-import com.mymusic.app.bean.DataBean;
 import com.mymusic.app.inter.UpdateMag;
 
 import java.util.ArrayList;
@@ -35,13 +36,14 @@ public class FragmentOther extends Fragment implements AlbumAdapter.OnItemClickL
 	RecyclerView recyclerView;
 	UpdateMag updateMag;
 
-	
-	
+	PlayListFragment playListFragment;
+
+
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		if (!isInit) {
-			view = inflater.inflate(R.layout.fragment_main, container, false);
+			view = inflater.inflate(R.layout.fragment_recycler, container, false);
 //			getContext().bindService(new Intent(getContext(), MediaService.class), serviceConnection, Context.BIND_AUTO_CREATE);
 			init(view);
 			isInit=true;
@@ -55,7 +57,15 @@ public class FragmentOther extends Fragment implements AlbumAdapter.OnItemClickL
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 		recyclerView.setAdapter(albumAdapter);
 		albumAdapter.setOnItemClickListener(this);
+		playListFragment = new PlayListFragment();
+		getParentFragmentManager().beginTransaction().add(R.id.fragment_layout,playListFragment,"PlayListFragment").hide(playListFragment).commit();
+		if (updateMag.getBider()!=null&&albumDataList.isEmpty()){
+			updateMag.getData(1);
+		}
 	}
+
+
+
 	
 	
 //	ServiceConnection serviceConnection=new ServiceConnection() {
@@ -81,6 +91,11 @@ public class FragmentOther extends Fragment implements AlbumAdapter.OnItemClickL
 	
 	@Override
 	public void onItemClick(int position) {
+//		getParentFragmentManager().beginTransaction().addToBackStack(null)
+//				.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+//				.show(playListFragment)
+//				.commit();
+//		updateMag.hideToolBar();
 		Intent intent=new Intent(getContext(), PlayListActivity.class);
 		intent.putExtra("type", DataBean.TYPE_ALBUM);
 		intent.putExtra("id",albumDataList.get(position).getAlbumId());
@@ -102,9 +117,24 @@ public class FragmentOther extends Fragment implements AlbumAdapter.OnItemClickL
 		albumDataList.addAll(dataList);
 		albumAdapter.notifyDataSetChanged();
 	}
+
+
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (updateMag.getBider()!=null&&albumDataList.isEmpty()){
+			updateMag.getData(1);
+		}
+	}
+
+
+
 	@Override
 	public void serverConnect() {
-		updateMag.getData(1);
-
+		if (updateMag.getBider()!=null&&albumDataList.isEmpty()){
+			updateMag.getData(1);
+		}
 	}
+
 }

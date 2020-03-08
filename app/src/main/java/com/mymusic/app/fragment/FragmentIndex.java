@@ -3,8 +3,12 @@ package com.mymusic.app.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,19 +29,23 @@ import java.util.List;
 public class FragmentIndex extends Fragment implements ActivityToFragment.UpdateIndex{
 	private static final int UPDATE=423;
 	RecyclerView recyclerView;
-	public List<MediaData> songList;
+	public List<MediaData> songList,tempList;
 	SongAdapter songAdapter;
-//	MediaService mediaService;
-//	MediaService.Binder binder;
 	View view;
 	boolean isInit=false;
 	UpdateMag updateMag;
-	
+
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
+	}
+
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		if (!isInit){
-			view = inflater.inflate(R.layout.fragment_main,container,false);
+			view = inflater.inflate(R.layout.fragment_recycler,container,false);
 			init(view);
 			isInit=true;
 		}
@@ -45,12 +53,20 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 	}
 	private void init(View view){
 		songList=new ArrayList<>();
+		tempList=new ArrayList<>();
 		recyclerView=view.findViewById(R.id.main_list);
-		songAdapter =new SongAdapter(getContext(),songList);
+		songAdapter =new SongAdapter(view.getContext(),songList,tempList);
 		recyclerView.setAdapter(songAdapter);
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-		songAdapter.setOnItemClickListener((position)-> updateMag.update(position));
-
+		songAdapter.setOnItemClickListener((position)-> {
+			updateMag.playList(songList,position);
+		});
+		if (updateMag.getBider()!=null&&songList.isEmpty()){
+			updateMag.getData(0);
+		}
+//		if (songList.isEmpty()){
+//			updateMag.getData(0);
+//		}
 
 //			if (binder.getState()!=0){
 //				binder.clearState();
@@ -79,8 +95,8 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 //				}
 //			}
 //		});
-
 	}
+
 
 	@Override
 	public void onAttach(Context context) {
@@ -97,13 +113,54 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 
 	@Override
 	public void updateData(List<MediaData> dataList) {
-		songList.addAll(dataList);
-		songAdapter.notifyDataSetChanged();
+		if (songList.isEmpty()){
+			songList.addAll(dataList);
+			tempList.addAll(songList);
+			songAdapter.notifyDataSetChanged();
+		}
+	}
+
+
+
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (updateMag.getBider()!=null&&songList.isEmpty()){
+			updateMag.getData(0);
+		}
 	}
 
 	@Override
 	public void serverConnect() {
-		updateMag.getData(0);
+		if (updateMag.getBider()!=null&&songList.isEmpty()) {
+			updateMag.getData(0);
+		}
+	}
+
+	@Override
+	public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+		inflater.inflate(R.menu.menu_fragment,menu);
+		SearchView searchView= (SearchView) menu.findItem(R.id.app_bar_search).getActionView();
+		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+			@Override
+			public boolean onQueryTextSubmit(String query) {
+				return true;
+			}
+
+			@Override
+			public boolean onQueryTextChange(String newText) {
+				songAdapter.getFilter().filter(newText);
+				return true;
+			}
+		});
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+		return super.onOptionsItemSelected(item);
 	}
 }
 

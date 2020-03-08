@@ -1,39 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.mymusic.app.view.SlidingUpPanelLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:gravity="bottom"
+    app:dragView="@+id/playView"
+    app:panelHeight="66dp"
+    app:dragViewClickable="true"
+    app:initialState="hidden"
+    app:slidePanelOffset="66dp"
+    android:id="@+id/mainSlideLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appbar"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_weight="1.0"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_height="wrap_content">
 
-<!--        <androidx.appcompat.widget.Toolbar-->
-<!--            android:id="@+id/toolbar"-->
-<!--            app:layout_scrollFlags="scroll|enterAlways"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:minHeight="?actionBarSize"-->
-<!--            android:text="@string/app_name"-->
-<!--            android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" />-->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbar"
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabs"
+            android:fitsSystemWindows="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary" />
-    </com.google.android.material.appbar.AppBarLayout>
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                app:layout_scrollFlags="scroll|enterAlways"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="?actionBarSize"
+                android:text="@string/app_name"
+                android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" />
 
 
-    <include layout="@layout/layout_main" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <FrameLayout
+            android:id="@+id/fragment_layout"
+            android:elevation="6dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 
+    <com.mymusic.app.view.SlidingUpPanelLayout
+        android:id="@+id/playQueueSlide"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="bottom"
+        app:panelHeight="50dp"
+        app:shadowHeight="1dp"
+        app:directOffset="true"
+        app:dragView="@+id/queueLayout">
+
+        <LinearLayout
+            android:id="@+id/playView"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/bottomView"
+                android:layout_width="match_parent"
+                android:layout_height="66dp"
+                app:cardElevation="0dp"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+
+            <include layout="@layout/bottom_layout" />
+
+
+            </androidx.cardview.widget.CardView>
+
+            <include
+                layout="@layout/layout_play"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="70dp">-->
+
+
+                <TextView
+                    android:clickable="true"
+                    android:background="?attr/selectableItemBackground"
+                    android:id="@+id/queueLayout"
+                    android:text="播放列表"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"/>
+            <androidx.cardview.widget.CardView
+                app:cardElevation="1dp"
+                android:layout_width="match_parent"
+                android:layout_height="80dp">
+
+                <TextView
+                    android:text="正在播放"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"/>
+
+            </androidx.cardview.widget.CardView>
+
+
+<!--            </LinearLayout>-->
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/playQueue"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+</com.mymusic.app.view.SlidingUpPanelLayout>
     <!--<com.google.android.material.floatingactionbutton.FloatingActionButton-->
         <!--android:id="@+id/fab"-->
         <!--android:layout_width="wrap_content"-->
@@ -41,4 +134,4 @@
         <!--android:layout_gravity="bottom|end"-->
         <!--android:layout_margin="@dimen/fab_margin"-->
         <!--app:srcCompat="@android:drawable/ic_dialog_email" />-->
-</RelativeLayout>
+</com.mymusic.app.view.SlidingUpPanelLayout>

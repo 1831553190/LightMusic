@@ -2,9 +2,10 @@
 <resources>
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorAccent">#EC407A</color>
     <color name="colorBlue">#2196f3</color>
     <color name="gray1">#FF283439</color>
     <color name="gray2">#394349</color>
     <color name="orenge">#FF5722</color>
+    <color name="a66">#338C8C8C</color>
 </resources>
