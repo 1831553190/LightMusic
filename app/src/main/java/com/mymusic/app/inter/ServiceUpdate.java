@@ -1,5 +1,6 @@
 package com.mymusic.app.inter;
 
 public interface ServiceUpdate {
-    void updateSong();
+    void updateSongInfo();
+    void stateResume();
 }

@@ -11,7 +11,7 @@
 
     <CheckBoxPreference
         android:key="showCircleView"
-        android:defaultValue="true"
+        android:defaultValue="false"
         android:enabled="false"
         android:summary="切换播放界面的专辑图"
         android:title="使用圆形专辑图" />

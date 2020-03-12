@@ -26,28 +26,32 @@
         android:id="@+id/timeCircleView"
         android:layout_width="212dp"
         android:layout_height="212dp"
-        app:layout_constraintBottom_toBottomOf="@+id/albumCardView"
+        app:layout_constraintBottom_toBottomOf="@+id/playImg"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/albumCardView" />
+        app:layout_constraintTop_toTopOf="@+id/playImg" />
 
 
-    <com.mymusic.app.view.MyCardView
-        android:id="@+id/albumCardView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="2dp"
-        app:cardElevation="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+<!--    <com.mymusic.app.view.MyCardView-->
+<!--        android:id="@+id/albumCardView"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:cardCornerRadius="2dp"-->
+<!--        app:cardElevation="0dp"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
 
         <com.mymusic.app.view.MyImageView
             android:id="@+id/playImg"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/cover_background" />
-    </com.mymusic.app.view.MyCardView>
+            android:layout_width="0dp"
+            android:scaleType="fitXY"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/cover_background"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+<!--    </com.mymusic.app.view.MyCardView>-->
 
     <include layout="@layout/layout_play_top"/>
 

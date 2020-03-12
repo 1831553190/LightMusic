@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         style="?android:windowBackground"
         android:elevation="4dp"
-        android:layout_height="200dp" />
+        android:layout_height="300dp" />
     <include layout="@layout/fragment_recycler" />
 
 </LinearLayout>

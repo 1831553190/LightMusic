@@ -26,7 +26,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,7 +36,6 @@ import com.mymusic.app.bean.Artist;
 import com.mymusic.app.bean.DataBean;
 import com.mymusic.app.bean.MediaData;
 import com.mymusic.app.inter.ServiceUpdate;
-import com.mymusic.app.view.PlayOutActivity;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileDescriptor;
@@ -84,9 +82,15 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		private int repeatType;
 
 
-		public void updateListener(){
+		public void songChange(){
 			for (ServiceUpdate service:listeners.values()){
-				service.updateSong();
+				service.updateSongInfo();
+			}
+		}
+
+		public void stateResume(){
+			for (ServiceUpdate service:listeners.values()){
+				service.stateResume();
 			}
 		}
 
@@ -200,7 +204,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 					startForegroundService(new Intent(MediaService.this,MediaService.class));
 				}
 			}
-			binder.updateListener();
+			binder.songChange();
 		}
 
 //		public void play(String path){
@@ -309,6 +313,9 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		}
 
 
+
+
+
 		public Bitmap getBitmap() {
 			return bitmap1;
 		}
@@ -332,7 +339,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			update();
 		}
-		binder.updateListener();
+		binder.songChange();
 	}
 	
 	@Override
@@ -344,7 +351,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				}else{
 					currentPosition=0;
 					binder.stop();
-					binder.updateListener();
+					binder.songChange();
 				}
 				break;
 			case 1:

@@ -8,7 +8,6 @@ import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -19,9 +18,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
-import android.graphics.ColorSpace;
+import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -33,11 +35,9 @@ import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -47,7 +47,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
@@ -62,7 +61,6 @@ import com.mymusic.app.fragment.FragmentSinger;
 import com.mymusic.app.inter.ActivityToFragment;
 import com.mymusic.app.inter.ServiceUpdate;
 import com.mymusic.app.inter.UpdateMag;
-import com.mymusic.app.util.FastBlurUtil;
 import com.mymusic.app.view.BottomLayout;
 import com.mymusic.app.view.MySmoothSeekBar;
 import com.mymusic.app.view.SlidingUpPanelLayout;
@@ -72,7 +70,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.Fragment;
@@ -153,8 +150,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     @BindView(R.id.seekBar)
     MySmoothSeekBar progressBar;
 
-    @BindView(R.id.albumCardView)
-    CardView albumCard;
+//    @BindView(R.id.albumCardView)
+//    CardView albumCard;
 
     @BindView(R.id.includeTopLayout)
     View includeTopLayout;
@@ -203,9 +200,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         showBlru=preferences.getBoolean("showBlru",false);
         show=preferences.getBoolean("showCircleView",true);
         timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
-        if (!show){
-            albumCard.setRadius(DensityUtil.dip2px(this,2));
-        }
+//        if (!show){
+//            albumCard.setRadius(DensityUtil.dip2px(this,2));
+//        }
         repeatType=preferences.getInt("repeatType",0);
         switch (repeatType){
             case 0:
@@ -275,12 +272,12 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     }
 
 
-    @OnClick(R.id.albumCardView)
-    public void changeView(View v){
-        if (show){
-            albumCard.setRadius(DensityUtil.dip2px(this,100));
-            return;
-        }
+//    @OnClick(R.id.albumCardView)
+//    public void changeView(View v){
+//        if (show){
+//            albumCard.setRadius(DensityUtil.dip2px(this,100));
+//            return;
+//        }
 
 //        albumCard.setRadius(DensityUtil.dip2px(this,2));
 //        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) albumCard.getLayoutParams();
@@ -292,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //            layoutParams.height = 0;
 //        }
 //        albumCard.setLayoutParams(layoutParams);
-    }
+//    }
 
     @OnClick(R.id.repeatBtn)
     void onRepeatBtn(View v){
@@ -340,10 +337,10 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void btnTint(ColorStateList...colorStateList){
 //        按钮着色
-        btnPlayPre.setImageTintList(colorStateList[0]);
-        btnPlayPlay.setImageTintList(colorStateList[0]);
-        btnPlayNext.setImageTintList(colorStateList[0]);
-        repeatBtn.setImageTintList(colorStateList[0]);
+        btnPlayPre.setImageTintList(colorStateList[1]);
+        btnPlayPlay.setImageTintList(colorStateList[1]);
+        btnPlayNext.setImageTintList(colorStateList[1]);
+        repeatBtn.setImageTintList(colorStateList[1]);
 
         //文本着色
         playSongName.setTextColor(colorStateList[1]);
@@ -375,139 +372,152 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         }
     };
 
-    ServiceUpdate serviceUpdate = () -> {
-        showBottom(binder.getMediaData());
-        if (binder.isPlaying()) {
-            btnPlayPlay.setImageResource(R.drawable.ic_pause_black_24dp);
-            btnPlay.setImageResource(R.drawable.ic_pause_black_24dp);
-        } else {
-            btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-            btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-        }
-
-
-        FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this,binder.getMediaData().getAlbumID());
-        Bitmap bitmap = null;
-        if (fd==null){
-            bitmap=getBitmap(this,R.mipmap.cover_pic);
-        }else{
-            bitmap=BitmapFactory.decodeFileDescriptor(fd);
-        }
-        Palette palette=Palette.from(bitmap).generate();
-        Bitmap bitmap1=Bitmap.createBitmap(bitmap,0,0,10,10);
 
 
 
-        if (showBlru){          //高斯模糊背景
-            Bitmap pic=binder.getBitmap();
-            Bitmap outputBitmap;
-            Bitmap inputBitmap = null;
-            if (pic==null){
-                Bitmap bitRes=getBitmap(this,R.drawable.ic_audiotrack_black_24dp);
-                Bitmap bitmap2=Bitmap.createBitmap(bitRes,bitRes.getWidth()/4,0,bitRes.getWidth()/2,bitRes.getHeight());
-                inputBitmap = Bitmap.createScaledBitmap(bitmap2, 150, 150, false);
-            }else{
-                Bitmap bitmap2=Bitmap.createBitmap(pic,pic.getWidth()/4,pic.getHeight()/4,pic.getWidth()/2,pic.getHeight()/2);
-                inputBitmap = Bitmap.createScaledBitmap(bitmap2, 150, 150, false);
+
+
+
+    ServiceUpdate serviceUpdate = new ServiceUpdate() {
+        @Override
+        public void updateSongInfo() {
+            showBottom(binder.getMediaData());
+            if (binder.isPlaying()) {
+                btnPlayPlay.setImageResource(R.drawable.ic_pause_black_24dp);
+                btnPlay.setImageResource(R.drawable.ic_pause_black_24dp);
+            } else {
+                btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
             }
-            //创建将在ondraw中使用到的经过模糊处理后的bitmap
-            outputBitmap = Bitmap.createBitmap(inputBitmap);
 
-            //创建RenderScript，ScriptIntrinsicBlur固定写法
-            RenderScript rs = RenderScript.create(this);
-            ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
 
-            //根据inputBitmap，outputBitmap分别分配内存
-            Allocation tmpIn = Allocation.createFromBitmap(rs, inputBitmap);
-            Allocation tmpOut = Allocation.createFromBitmap(rs, outputBitmap);
-
-            //设置模糊半径取值0-25之间，不同半径得到的模糊效果不同
-            blurScript.setRadius(25f);
-            blurScript.setInput(tmpIn);
-            blurScript.forEach(tmpOut);
-
-            // 模糊 outputBitmap
-            tmpOut.copyTo(outputBitmap);
-
-        int brightness = -30; //RGB偏移量，变暗为负数
-        ColorMatrix matrix = new ColorMatrix();
-        matrix.setSaturation(0.7f);
-//        matrix.set(new float[]{1, 0, 0, 0, brightness, 0, 1, 0, 0, brightness, 0, 0, 1, 0, brightness, 0, 0, 0, 1, 0});
-        ColorMatrixColorFilter cmcf = new ColorMatrixColorFilter(matrix);
-        Paint paint=new Paint();
-        paint.setColorFilter(cmcf);
-        Canvas canvas=new Canvas(outputBitmap);
-        canvas.drawBitmap(outputBitmap,new Matrix(),paint);
-
-            // 将模糊后的 outputBitmap 设为目标 View 的背景
-            secondSlidePanel.setBackground(new BitmapDrawable(getResources(), outputBitmap));
-            rs.destroy();
-            Palette palette1=Palette.from(outputBitmap).generate();
-            if (ColorUtils.calculateLuminance(outputBitmap.getPixel(0,0))>0.5){
-                btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),
-                        ColorStateList.valueOf(palette.getDarkVibrantColor(palette.getDarkMutedColor(
-                                getResources().getColor(R.color.gray2)))));
+            FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(MainActivity.this,binder.getMediaData().getAlbumID());
+            Bitmap bitmap = null;
+            if (fd==null){
+                bitmap=getBitmap(MainActivity.this,R.mipmap.cover_pic);
             }else{
-                btnTint(ColorStateList.valueOf(Color.WHITE),ColorStateList.valueOf(palette.getDarkVibrantColor(
+                bitmap=BitmapFactory.decodeFileDescriptor(fd);
+            }
+            Palette palette=Palette.from(bitmap).generate();
+            Bitmap bitmap1=Bitmap.createBitmap(bitmap,0,0,10,10);
+//        secondSlidePanel.setBackground(palette.getLightVibrantColor(Color.WHITE));
+
+
+
+            if (showBlru){          //高斯模糊背景
+                Bitmap pic=binder.getBitmap();
+                Bitmap outputBitmap;
+                Bitmap inputBitmap = null;
+                if (pic==null){
+                    Bitmap bitRes=getBitmap(MainActivity.this,R.drawable.ic_audiotrack_black_24dp);
+                    Bitmap bitmap2=Bitmap.createBitmap(bitRes,bitRes.getWidth()/4,0,bitRes.getWidth()/2,bitRes.getHeight());
+                    inputBitmap = Bitmap.createScaledBitmap(bitmap2, 150, 150, false);
+                }else{
+                    Bitmap bitmap2=Bitmap.createBitmap(pic,pic.getWidth()/4,pic.getHeight()/4,pic.getWidth()/2,pic.getHeight()/2);
+                    inputBitmap = Bitmap.createScaledBitmap(bitmap2, 150, 150, false);
+                }
+                //创建将在ondraw中使用到的经过模糊处理后的bitmap
+                outputBitmap = Bitmap.createBitmap(inputBitmap);
+
+                //创建RenderScript，ScriptIntrinsicBlur固定写法
+                RenderScript rs = RenderScript.create(MainActivity.this);
+                ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+
+                //根据inputBitmap，outputBitmap分别分配内存
+                Allocation tmpIn = Allocation.createFromBitmap(rs, inputBitmap);
+                Allocation tmpOut = Allocation.createFromBitmap(rs, outputBitmap);
+
+                //设置模糊半径取值0-25之间，不同半径得到的模糊效果不同
+                blurScript.setRadius(25f);
+                blurScript.setInput(tmpIn);
+                blurScript.forEach(tmpOut);
+
+                // 模糊 outputBitmap
+                tmpOut.copyTo(outputBitmap);
+
+                int brightness = -30; //RGB偏移量，变暗为负数
+                ColorMatrix matrix = new ColorMatrix();
+                matrix.setSaturation(0.7f);
+//        matrix.set(new float[]{1, 0, 0, 0, brightness, 0, 1, 0, 0, brightness, 0, 0, 1, 0, brightness, 0, 0, 0, 1, 0});
+                ColorMatrixColorFilter cmcf = new ColorMatrixColorFilter(matrix);
+                Paint paint=new Paint();
+                paint.setColorFilter(cmcf);
+                Canvas canvas=new Canvas(outputBitmap);
+                canvas.drawBitmap(outputBitmap,new Matrix(),paint);
+
+                // 将模糊后的 outputBitmap 设为目标 View 的背景
+                secondSlidePanel.setBackground(new BitmapDrawable(getResources(), outputBitmap));
+//                secondSlidePanel.setBackgroundColor(palette.getLightMutedColor(Color.WHITE));
+                rs.destroy();
+                Palette palette1=Palette.from(outputBitmap).generate();
+                if (ColorUtils.calculateLuminance(outputBitmap.getPixel(0,0))>0.5){
+                    btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),
+                            ColorStateList.valueOf(palette.getDarkVibrantColor(palette.getDarkMutedColor(
+                                    getResources().getColor(R.color.gray2)))));
+                }else{
+                    btnTint(ColorStateList.valueOf(Color.WHITE),ColorStateList.valueOf(palette.getDarkVibrantColor(
+                            palette.getDarkMutedColor(
+                                    getResources().getColor(R.color.gray2)))));
+                }
+
+            }else{
+                secondSlidePanel.setBackgroundColor(palette.getLightMutedColor(Color.WHITE));
+                btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),ColorStateList.valueOf(palette.getDarkVibrantColor(
                         palette.getDarkMutedColor(
                                 getResources().getColor(R.color.gray2)))));
             }
 
-        }else{
-            secondSlidePanel.setBackground(null);
-            btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),ColorStateList.valueOf(palette.getDarkVibrantColor(
-                    palette.getDarkMutedColor(
-                            Color.WHITE))));
-        }
 
 
+            int color=bitmap1.getPixel(0,0);
 
-        int color=bitmap1.getPixel(0,0);
+            if (color!=0){      //状态栏图标变色
+                int red = Color.red(color);
+                int green = Color.green(color);
+                int blue = Color.blue(color);
+                if(ColorUtils.calculateLuminance(color)>0.5f) { //浅色
+                    getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                }else{
+                    getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+                }
 
-        if (color!=0){      //状态栏图标变色
-            int red = Color.red(color);
-            int green = Color.green(color);
-            int blue = Color.blue(color);
-            if(ColorUtils.calculateLuminance(color)>0.5f) { //浅色
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            }else{
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
             }
 
-        }
+
+            secondProgressInit();
+            MediaData mediaData=binder.getMediaData();
+            playSongName.setText(mediaData.getTitle());
+            playSongArtist.setText(mediaData.getArtist());
+            rightTime.setText(simpleDateFormat.format(mediaData.getDuration()));
+            if (isPlayLayoutVisible){
+                MediaPlayer mediaPlayer=binder.getMediaplay();
+                timerCircleView.setMax(mediaPlayer.getDuration());
+                progressBar.setMax(mediaPlayer.getDuration());
+
+                timerCircleView.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
+            }
 
 
-
-
-
-        secondProgressInit();
-        MediaData mediaData=binder.getMediaData();
-        playSongName.setText(mediaData.getTitle());
-        playSongArtist.setText(mediaData.getArtist());
-        rightTime.setText(simpleDateFormat.format(mediaData.getDuration()));
-        if (isPlayLayoutVisible){
-            MediaPlayer mediaPlayer=binder.getMediaplay();
-            timerCircleView.setMax(mediaPlayer.getDuration());
-            progressBar.setMax(mediaPlayer.getDuration());
-
-            timerCircleView.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
-        }
-
-
-        if (showBottomProgress&&!isPlayLayoutVisible){
-            progressInit();     //进度条动画
-            if (binder.isPlaying()){
+            if (showBottomProgress&&!isPlayLayoutVisible){
+                progressInit();     //进度条动画
+                if (binder.isPlaying()){
 //                设置底部进度条的值
-                bottomLayout.setMax(binder.getMediaplay().getDuration());
-                bottomLayout.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
+                    bottomLayout.setMax(binder.getMediaplay().getDuration());
+                    bottomLayout.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
+                }
+            }
+            if (binder.isPlaying()){
+                //更新进度条状态
+                handler.removeCallbacks(runnable);
+                handler.post(runnable);
+            }else{
+                handler.removeCallbacks(runnable);
             }
         }
-        if (binder.isPlaying()){
-            //更新进度条状态
-            handler.removeCallbacks(runnable);
-            handler.post(runnable);
-        }else{
-            handler.removeCallbacks(runnable);
+
+        @Override
+        public void stateResume() {
+
         }
     };
 
@@ -603,13 +613,13 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             @Override
             public void onPanelCollapsed(View panel) {
                 isPlayLayoutVisible=false;
-                serviceUpdate.updateSong();
+                serviceUpdate.updateSongInfo();
             }
 
             @Override
             public void onPanelExpanded(View panel) {
                 isPlayLayoutVisible=true;
-                serviceUpdate.updateSong();
+                serviceUpdate.updateSongInfo();
                 recyclerView.scrollToPosition(binder.getCurrentPosition());
             }
 
@@ -669,7 +679,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 updateAlbum.serverConnect();
             }
             if (binder.isPlaying()) {
-                binder.updateListener();
+                binder.songChange();
             }
             if (binder.isPlaying()){
                 isPlay=true;
@@ -681,6 +691,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             if(repeatType!=-1){
                 binder.setRepeatType(repeatType);
             }
+
+
 
         }
 
@@ -763,8 +775,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     @Override
     protected void onResume() {
         super.onResume();
-        if (binder != null) {
-            binder.addListener("main", serviceUpdate);
+        if(binder!=null){
+            binder.songChange();
         }
     }
 
@@ -797,15 +809,45 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 .transition(DrawableTransitionOptions.withCrossFade(factory))
                 .error(R.drawable.cover_background)
                 .into(albumImg);
-        Glide.with(this)
-                .load(MediaFactory.getAlbumArtGetDescriptorUri(this, data.getAlbumID()))
-                .placeholder(playAlbumImg.getDrawable())
-                .transition(DrawableTransitionOptions.withCrossFade(factory))
-                .error(R.drawable.cover_background)
-                .into(playAlbumImg);
+
+        FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this, data.getAlbumID());
+        Bitmap bitmap=fd==null?BitmapFactory.decodeResource(getResources(),R.drawable.cover_background):addGradient(BitmapFactory.decodeFileDescriptor(fd));
+//        Bitmap shapeImg=bitmap==null?B;
+//        playAlbumImg.setImageBitmap(addGradient(bitmap));
+            Glide.with(this)
+                    .load(bitmap)
+//                .load(MediaFactory.getAlbumArtGetDescriptorUri(this, data.getAlbumID()))
+                    .placeholder(playAlbumImg.getDrawable())
+                    .transition(DrawableTransitionOptions.withCrossFade(factory))
+//                .transform(new BitmapTransform())
+                    .error(R.drawable.cover_background)
+                    .into(playAlbumImg);
         artist.setText(data.getArtist());
         songName.setText(data.getTitle());
     }
+
+
+
+    public Bitmap addGradient(Bitmap src) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+         int GRADIENT_HEIGHT = h/4;
+
+        Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(overlay);
+
+        canvas.drawBitmap(src, 0, 0, null);
+        Palette palette=Palette.from(src).generate();
+
+        Paint paint = new Paint();
+        LinearGradient shader = new LinearGradient(0,  h -GRADIENT_HEIGHT, 0, h, palette.getLightMutedColor(Color.WHITE),0x00ffffff , Shader.TileMode.CLAMP);
+        paint.setShader(shader);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+        canvas.drawRect(0, h - GRADIENT_HEIGHT, w, h, paint);
+
+        return overlay;
+    }
+
 
     private boolean isPlay() {
         return isPlay;
@@ -912,7 +954,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     @Override
     public void onAttachFragment(Fragment fragment) {
         super.onAttachFragment(fragment);
-        System.out.println(fragment.toString());
+//        System.out.println(fragment.toString());
         if (fragment instanceof FragmentIndex) {
             updateIndex = (ActivityToFragment.UpdateIndex) fragment;
         } else if (fragment instanceof FragmentOther) {
@@ -942,13 +984,13 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             show=preferences.getBoolean("showCircleView",true);
             showBlru=preferences.getBoolean("showBlru",true);
             timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
-            if (!show){
-                albumCard.setRadius(DensityUtil.dip2px(this,2));
-            }else{
-                albumCard.setRadius(DensityUtil.dip2px(this,100));
-
-            }
-            serviceUpdate.updateSong();
+//            if (!show){
+//                albumCard.setRadius(DensityUtil.dip2px(this,2));
+//            }else{
+//                albumCard.setRadius(DensityUtil.dip2px(this,100));
+//
+//            }
+            serviceUpdate.updateSongInfo();
         }else{
             super.onBackPressed();
             if (binder!=null){
@@ -958,13 +1000,13 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             show=preferences.getBoolean("showCircleView",true);
             showBlru=preferences.getBoolean("showBlru",true);
             timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
-            if (!show){
-                albumCard.setRadius(DensityUtil.dip2px(this,2));
-            }else{
-                albumCard.setRadius(DensityUtil.dip2px(this,100));
-
-            }
-            serviceUpdate.updateSong();
+//            if (!show){
+//                albumCard.setRadius(DensityUtil.dip2px(this,2));
+//            }else{
+//                albumCard.setRadius(DensityUtil.dip2px(this,100));
+//
+//            }
+            serviceUpdate.updateSongInfo();
         }
 
     }
