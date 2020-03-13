@@ -25,8 +25,8 @@ public class BitmapTransform extends BitmapTransformation {
         int h = toTransform.getHeight();
         int GRADIENT_HEIGHT = 100;
 
-//        Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Bitmap overlay=pool.get(w,h, Bitmap.Config.ARGB_8888);
+        Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+//        Bitmap overlay=pool.get(w,h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(overlay);
 
         canvas.drawBitmap(toTransform, 0, 0, null);

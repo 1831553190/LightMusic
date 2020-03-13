@@ -49,6 +49,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory;
 import com.google.android.material.snackbar.Snackbar;
@@ -61,10 +62,12 @@ import com.mymusic.app.fragment.FragmentSinger;
 import com.mymusic.app.inter.ActivityToFragment;
 import com.mymusic.app.inter.ServiceUpdate;
 import com.mymusic.app.inter.UpdateMag;
+import com.mymusic.app.util.BitmapTransform;
 import com.mymusic.app.view.BottomLayout;
 import com.mymusic.app.view.MySmoothSeekBar;
 import com.mymusic.app.view.SlidingUpPanelLayout;
 import com.mymusic.app.view.TimerCircleView;
+import com.squareup.picasso.Picasso;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -132,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
     FragmentManager fragmentManager;
     SharedPreferences preferences;
+    private long albumId=-1;
 
 
 
@@ -140,9 +144,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
     playlayout
      */
-
-    @BindView(R.id.timeCircleView)
-    TimerCircleView timerCircleView;
+//
+//    @BindView(R.id.timeCircleView)
+//    TimerCircleView timerCircleView;
     @BindView(R.id.leftTime)
     TextView leftTime;
     @BindView(R.id.rightTime)
@@ -199,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     private void initPlayLayout() {
         showBlru=preferences.getBoolean("showBlru",false);
         show=preferences.getBoolean("showCircleView",true);
-        timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
+//        timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
 //        if (!show){
 //            albumCard.setRadius(DensityUtil.dip2px(this,2));
 //        }
@@ -360,9 +364,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         public void run() {
             int progress=binder.getMediaplay().getCurrentPosition();
             if (isPlayLayoutVisible){
-                if (show){
-                    timerCircleView.setProgress(progress);
-                }
+//                if (show){
+////                    timerCircleView.setProgress(progress);
+//                }
                 progressBar.setProgress(progress);
                 leftTime.setText(simpleDateFormat.format(progress));
             }else{
@@ -381,14 +385,14 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     ServiceUpdate serviceUpdate = new ServiceUpdate() {
         @Override
         public void updateSongInfo() {
+            replaceAlbumArt();
             showBottom(binder.getMediaData());
-            if (binder.isPlaying()) {
-                btnPlayPlay.setImageResource(R.drawable.ic_pause_black_24dp);
-                btnPlay.setImageResource(R.drawable.ic_pause_black_24dp);
-            } else {
-                btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-                btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-            }
+
+
+
+
+
+
 
 
             FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(MainActivity.this,binder.getMediaData().getAlbumID());
@@ -405,9 +409,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
             if (showBlru){          //高斯模糊背景
-                Bitmap pic=binder.getBitmap();
                 Bitmap outputBitmap;
                 Bitmap inputBitmap = null;
+                Bitmap pic=binder.getBitmap();
                 if (pic==null){
                     Bitmap bitRes=getBitmap(MainActivity.this,R.drawable.ic_audiotrack_black_24dp);
                     Bitmap bitmap2=Bitmap.createBitmap(bitRes,bitRes.getWidth()/4,0,bitRes.getWidth()/2,bitRes.getHeight());
@@ -462,8 +466,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
             }else{
                 secondSlidePanel.setBackgroundColor(palette.getLightMutedColor(Color.WHITE));
-                btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),ColorStateList.valueOf(palette.getDarkVibrantColor(
-                        palette.getDarkMutedColor(
+                btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),ColorStateList.valueOf(palette.getDarkMutedColor(
+                        palette.getDarkVibrantColor(
                                 getResources().getColor(R.color.gray2)))));
             }
 
@@ -484,21 +488,44 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             }
 
 
-            secondProgressInit();
+
             MediaData mediaData=binder.getMediaData();
             playSongName.setText(mediaData.getTitle());
             playSongArtist.setText(mediaData.getArtist());
             rightTime.setText(simpleDateFormat.format(mediaData.getDuration()));
-            if (isPlayLayoutVisible){
+//            if (isPlayLayoutVisible){
                 MediaPlayer mediaPlayer=binder.getMediaplay();
-                timerCircleView.setMax(mediaPlayer.getDuration());
                 progressBar.setMax(mediaPlayer.getDuration());
+//                timerCircleView.setMax(medFiaPlayer.getDuration());                //过时
+//                timerCircleView.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
+//            }
 
-                timerCircleView.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
+
+
+        }
+
+
+        @Override
+        public void statePlayAndPauseChange() {
+            if (binder.isPlaying()) {
+                btnPlayPlay.setImageResource(R.drawable.ic_pause_black_24dp);
+                btnPlay.setImageResource(R.drawable.ic_pause_black_24dp);
+            } else {
+                btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
             }
+        }
 
+        @Override
+        public void stateResume() {
+            replaceAlbumArt();
+            Bitmap cover=binder.getBitmap();    //获取专辑图
+            if (cover==null){                   //如果专辑图为空
+                cover=BitmapFactory.decodeResource(getResources(),R.mipmap.cover_pic);         //用drawable目录的图片
+            }
+            Palette palette=Palette.from(cover).generate();             //传入图片取色
 
-            if (showBottomProgress&&!isPlayLayoutVisible){
+            if (showBottomProgress&&!isPlayLayoutVisible){          //如果开启底部进度条，并且可见，则显示动画
                 progressInit();     //进度条动画
                 if (binder.isPlaying()){
 //                设置底部进度条的值
@@ -506,33 +533,89 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                     bottomLayout.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
                 }
             }
-            if (binder.isPlaying()){
+
+            secondProgressInit();      //显示进度条动画
+
+
+            if (binder.isPlaying()){            //如果音乐播放更新ui
                 //更新进度条状态
-                handler.removeCallbacks(runnable);
+                handler.removeCallbacks(runnable);      //发现多次post会有问题，所以先移除
                 handler.post(runnable);
             }else{
                 handler.removeCallbacks(runnable);
             }
         }
-
-        @Override
-        public void stateResume() {
-
-        }
     };
+
+
+
+    private void replaceAlbumArt(){
+
+        MediaData mediaData=binder.getMediaData();
+
+
+        Log.d("TAG", "replaceAlbumArt: "+binder.getMediaData().getAlbumID()+":"+albumId);
+        if (mediaData.getAlbumID()!=albumId){
+            albumId=mediaData.getAlbumID();
+            FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this, mediaData.getAlbumID());
+            Bitmap bitmap=fd==null?getBitmap(this,R.drawable.ic_audiotrack_black_24dp):addGradient(BitmapFactory.decodeFileDescriptor(fd));
+
+            Glide.with(this)
+                    .load(bitmap)
+//                    .placeholder(playAlbumImg.getDrawable())
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .transform(new BitmapTransform())
+                    .error(new BitmapDrawable(bitmap))
+                    .into(playAlbumImg);
+        }
+
+
+
+
+    }
+
+    public Bitmap addGradient(Bitmap src) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+        int GRADIENT_HEIGHT = h/4;
+
+        Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(overlay);
+
+        canvas.drawBitmap(src, 0, 0, null);
+        Palette palette=Palette.from(src).generate();
+
+        Paint paint = new Paint();
+        LinearGradient shader = new LinearGradient(0,  h -GRADIENT_HEIGHT, 0, h, 0xffffffff,0x00ffffff , Shader.TileMode.CLAMP);
+        paint.setShader(shader);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+        canvas.drawRect(0, h - GRADIENT_HEIGHT, w, h, paint);
+        return overlay;
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     private void secondProgressInit() {
-            animator=ValueAnimator.ofInt((int)progressBar.getProgress(),binder.getMediaplay().getCurrentPosition()+750);
-            animator.setDuration(750);
+            animator=ValueAnimator.ofInt((int)progressBar.getProgress(),binder.getMediaplay().getCurrentPosition()+1200);
+            animator.setDuration(1200);
             animator.setInterpolator(new AccelerateDecelerateInterpolator());
             animator.addUpdateListener(animation -> {
                 int p=(int) animation.getAnimatedValue();
                 progressBar.setProgress(p);
-                timerCircleView.setProgress(p);
                 leftTime.setText(simpleDateFormat.format(p));
+//                timerCircleView.setProgress(p);
             });
-            animator.start();
+        animator.start();
     }
 
     private boolean isPlay=false;
@@ -540,8 +623,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         Bitmap bitmap=null;
         if (Build.VERSION.SDK_INT>Build.VERSION_CODES.LOLLIPOP){
             Drawable vectorDrawable = context.getDrawable(vectorDrawableId);
-            bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
-                    vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            bitmap = Bitmap.createBitmap(400,
+                    400, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
             vectorDrawable.draw(canvas);
@@ -613,13 +696,13 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             @Override
             public void onPanelCollapsed(View panel) {
                 isPlayLayoutVisible=false;
-                serviceUpdate.updateSongInfo();
+                serviceUpdate.stateResume();
             }
 
             @Override
             public void onPanelExpanded(View panel) {
                 isPlayLayoutVisible=true;
-                serviceUpdate.updateSongInfo();
+                serviceUpdate.stateResume();
                 recyclerView.scrollToPosition(binder.getCurrentPosition());
             }
 
@@ -691,6 +774,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             if(repeatType!=-1){
                 binder.setRepeatType(repeatType);
             }
+
 
 
 
@@ -776,7 +860,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     protected void onResume() {
         super.onResume();
         if(binder!=null){
-            binder.songChange();
+            binder.stateResume();
         }
     }
 
@@ -802,51 +886,19 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             }
         }
 
-
         Glide.with(this)
-                .load(MediaFactory.getAlbumArtGetDescriptorUri(this, data.getAlbumID()))
-                .placeholder(albumImg.getDrawable())
-                .transition(DrawableTransitionOptions.withCrossFade(factory))
-                .error(R.drawable.cover_background)
+                .load(binder.getBitmap())
+                .error(R.mipmap.cover_pic)
+                .transition(DrawableTransitionOptions.withCrossFade())
                 .into(albumImg);
 
-        FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this, data.getAlbumID());
-        Bitmap bitmap=fd==null?BitmapFactory.decodeResource(getResources(),R.drawable.cover_background):addGradient(BitmapFactory.decodeFileDescriptor(fd));
-//        Bitmap shapeImg=bitmap==null?B;
-//        playAlbumImg.setImageBitmap(addGradient(bitmap));
-            Glide.with(this)
-                    .load(bitmap)
-//                .load(MediaFactory.getAlbumArtGetDescriptorUri(this, data.getAlbumID()))
-                    .placeholder(playAlbumImg.getDrawable())
-                    .transition(DrawableTransitionOptions.withCrossFade(factory))
-//                .transform(new BitmapTransform())
-                    .error(R.drawable.cover_background)
-                    .into(playAlbumImg);
+
         artist.setText(data.getArtist());
         songName.setText(data.getTitle());
     }
 
 
 
-    public Bitmap addGradient(Bitmap src) {
-        int w = src.getWidth();
-        int h = src.getHeight();
-         int GRADIENT_HEIGHT = h/4;
-
-        Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(overlay);
-
-        canvas.drawBitmap(src, 0, 0, null);
-        Palette palette=Palette.from(src).generate();
-
-        Paint paint = new Paint();
-        LinearGradient shader = new LinearGradient(0,  h -GRADIENT_HEIGHT, 0, h, palette.getLightMutedColor(Color.WHITE),0x00ffffff , Shader.TileMode.CLAMP);
-        paint.setShader(shader);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
-        canvas.drawRect(0, h - GRADIENT_HEIGHT, w, h, paint);
-
-        return overlay;
-    }
 
 
     private boolean isPlay() {
@@ -983,7 +1035,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             showBottomProgress= preferences.getBoolean("showProgress",false);
             show=preferences.getBoolean("showCircleView",true);
             showBlru=preferences.getBoolean("showBlru",true);
-            timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
+//            timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
 //            if (!show){
 //                albumCard.setRadius(DensityUtil.dip2px(this,2));
 //            }else{
@@ -999,7 +1051,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             showBottomProgress= preferences.getBoolean("showProgress",false);
             show=preferences.getBoolean("showCircleView",true);
             showBlru=preferences.getBoolean("showBlru",true);
-            timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
+//            timerCircleView.setVisibility(show?View.VISIBLE:View.GONE);
 //            if (!show){
 //                albumCard.setRadius(DensityUtil.dip2px(this,2));
 //            }else{

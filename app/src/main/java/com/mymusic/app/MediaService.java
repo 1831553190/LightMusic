@@ -94,6 +94,12 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			}
 		}
 
+		public void statePlayAndPauseChange(){
+			for (ServiceUpdate service:listeners.values()){
+				service.statePlayAndPauseChange();
+			}
+		}
+
 		public MediaPlayer getMediaplay(){
 			return mediaPlayer;
 		}
@@ -204,7 +210,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 					startForegroundService(new Intent(MediaService.this,MediaService.class));
 				}
 			}
-			binder.songChange();
+			binder.statePlayAndPauseChange();
 		}
 
 //		public void play(String path){

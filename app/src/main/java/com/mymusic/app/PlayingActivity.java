@@ -134,6 +134,14 @@ public class PlayingActivity extends AppCompatActivity implements View.OnClickLi
             } else {
                 handler.removeCallbacks(PlayingActivity.this);
             }
+
+
+
+        }
+
+        @Override
+        public void statePlayAndPauseChange() {
+
         }
 
         @Override
