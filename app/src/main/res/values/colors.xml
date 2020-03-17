@@ -8,4 +8,10 @@
     <color name="gray2">#394349</color>
     <color name="orenge">#FF5722</color>
     <color name="a66">#338C8C8C</color>
+    <color name="backgroundColor">#ffffff</color>
+    <color name="btnTint">@color/gray2</color>
+    <color name="tabTextColor">#bbeeeeee</color>
+    <color name="tabSelectColor">#ffffff</color>
+    <color name="tabBackground">@color/colorPrimary</color>
+    <color name="textColor">@color/cardview_dark_background</color>
 </resources>

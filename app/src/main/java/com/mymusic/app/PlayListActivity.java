@@ -64,7 +64,7 @@ public class PlayListActivity extends AppCompatActivity {
 //			}
 //		});
 		songAdapter.setOnItemClickListener(position -> {
-			binder.setSongPlayList(songList);
+//			binder.setSongPlayList(songList);
 			binder.playList(songList,position);
 		});
 	}

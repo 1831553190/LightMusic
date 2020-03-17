@@ -42,8 +42,12 @@ public class FragmentOther extends Fragment implements AlbumAdapter.OnItemClickL
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+//		setRetainInstance(true);
+
 		if (!isInit) {
-			view = inflater.inflate(R.layout.fragment_recycler, container, false);
+			if (view==null) {
+				view = inflater.inflate(R.layout.fragment_recycler, container, false);
+			}
 //			getContext().bindService(new Intent(getContext(), MediaService.class), serviceConnection, Context.BIND_AUTO_CREATE);
 			init(view);
 			isInit=true;

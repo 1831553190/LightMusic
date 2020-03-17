@@ -106,8 +106,10 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     ImageView btnPre, btnPlay, btnNext;
 
     MediaService.Binder binder;
-    FragmentMain fragmentMain;
-    Setting setting;
+    static final FragmentMain fragmentMain=new FragmentMain();
+    static final Setting setting=new Setting();
+
+
 
     boolean showBottomProgress=false;
 
@@ -133,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     FrameLayout frameLayout;
 
 
-    FragmentManager fragmentManager;
+//    FragmentManager fragmentManager;
     SharedPreferences preferences;
     private long albumId=-1;
 
@@ -196,8 +198,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
     boolean showBlru=false;
-
-
+    private FragmentManager fragmentManager=getSupportFragmentManager();
 
 
     private void initPlayLayout() {
@@ -345,7 +346,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         btnPlayPlay.setImageTintList(colorStateList[1]);
         btnPlayNext.setImageTintList(colorStateList[1]);
         repeatBtn.setImageTintList(colorStateList[1]);
-
         //文本着色
         playSongName.setTextColor(colorStateList[1]);
         playSongArtist.setTextColor(colorStateList[1]);
@@ -386,6 +386,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         @Override
         public void updateSongInfo() {
             replaceAlbumArt();
+
             showBottom(binder.getMediaData());
 
 
@@ -518,7 +519,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
         @Override
         public void stateResume() {
-            replaceAlbumArt();
+//            replaceAlbumArt();
             Bitmap cover=binder.getBitmap();    //获取专辑图
             if (cover==null){                   //如果专辑图为空
                 cover=BitmapFactory.decodeResource(getResources(),R.mipmap.cover_pic);         //用drawable目录的图片
@@ -645,10 +646,14 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d("TAG", "onCreate: "+ (savedInstanceState == null));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             int flagTranslucentStatus = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
             int flagTranslucentNavigation = WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
@@ -666,22 +671,34 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             }
         }
 
+
+
         ButterKnife.bind(this);
-        fragmentManager=getSupportFragmentManager();
-        if (fragmentMain==null){
-            fragmentMain = new FragmentMain();
-        }
-        if (setting==null){
-            setting=new Setting();
-        }
-        if (fragmentManager.findFragmentByTag("fragmentMain")==null&&getSupportFragmentManager().findFragmentByTag("setting")==null){
+
+        if (savedInstanceState==null){
             fragmentManager.beginTransaction()
                     .add(R.id.fragment_layout,fragmentMain,"fragmentMain")
-                    .add(R.id.fragment_layout,setting,"setting")
-                    .hide(setting)
-                    .show(fragmentMain)
-                    .commit();
+                    .add(R.id.fragment_layout,setting,"setting").commit();
         }
+////            if (fragmentMain==null){
+////                fragmentMain = new FragmentMain();
+////            }
+////            if (setting==null){
+////                setting=new Setting();
+////            }
+////            fragmentManager=getSupportFragmentManager();
+//            Log.d("TAG", "onCreate: ");
+//
+//
+////            if (getSupportFragmentManager().findFragmentByTag("fragmentMain")==null&&getSupportFragmentManager().findFragmentByTag("setting")==null){
+//
+//
+////            }
+//
+//        }
+        fragmentManager.beginTransaction().hide(setting)
+                .show(fragmentMain)
+                .commit();
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         showBottomProgress= preferences.getBoolean("showProgress",false);
         reflushRate= Integer.parseInt(preferences.getString("level","100"));
@@ -774,6 +791,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             if(repeatType!=-1){
                 binder.setRepeatType(repeatType);
             }
+            binder.statePlayAndPauseChange();
+
 
 
 
@@ -861,6 +880,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         super.onResume();
         if(binder!=null){
             binder.stateResume();
+            binder.statePlayAndPauseChange();
+            binder.songChange();
         }
     }
 
@@ -991,6 +1012,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.setting:
+//                Log.d("TAG", "settingIsVisible: "+getSupportFragmentManager().findFragmentByTag("setting").isVisible());
+//                Log.d("TAG", "mainIsVisible: "+getSupportFragmentManager().findFragmentByTag("fragmentMain").isVisible());
                 fragmentManager.beginTransaction()
                         .show(setting)
                         .hide(fragmentMain)
@@ -1023,11 +1046,13 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
     @Override
     public void onBackPressed() {
+        Log.d("TAG", "settingIsVisible: "+getSupportFragmentManager().findFragmentByTag("setting").isVisible());
+        Log.d("TAG", "mainIsVisible: "+getSupportFragmentManager().findFragmentByTag("fragmentMain").isVisible());
         if (secondSlidePanel.isPanelExpanded()){
             secondSlidePanel.collapsePanel();
         }else if(slidePanel.isPanelExpanded()){
             slidePanel.collapsePanel();
-        }else if (fragmentManager.findFragmentByTag("fragmentMain").isVisible()){
+        }else if (fragmentManager.findFragmentByTag("setting").isVisible()){
             super.onBackPressed();
             if (binder!=null){
                 showBottom(binder.getMediaData());
@@ -1042,7 +1067,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //                albumCard.setRadius(DensityUtil.dip2px(this,100));
 //
 //            }
-            serviceUpdate.updateSongInfo();
+            if (binder!=null&&binder.getMediaplay().isPlaying()){
+                serviceUpdate.updateSongInfo();
+            }
         }else{
             super.onBackPressed();
             if (binder!=null){
@@ -1058,7 +1085,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //                albumCard.setRadius(DensityUtil.dip2px(this,100));
 //
 //            }
-            serviceUpdate.updateSongInfo();
+            if (binder!=null&&binder.getMediaplay().isPlaying()){
+                serviceUpdate.updateSongInfo();
+            }
         }
 
     }

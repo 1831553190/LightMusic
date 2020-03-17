@@ -45,10 +45,13 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		if (!isInit){
-			view = inflater.inflate(R.layout.fragment_recycler,container,false);
+			if (view==null){
+				view = inflater.inflate(R.layout.fragment_recycler,container,false);
+			}
 			init(view);
 			isInit=true;
 		}
+//		setRetainInstance(true);
 		return view;
 	}
 	private void init(View view){

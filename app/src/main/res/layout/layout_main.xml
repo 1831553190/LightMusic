@@ -8,12 +8,12 @@
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabs"
-        app:tabTextColor="#bbeeeeee"
-        app:tabSelectedTextColor="@android:color/white"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:elevation="12dp" />
+        android:background="@color/tabBackground"
+        app:tabTextColor="@color/tabTextColor"
+        app:tabSelectedTextColor="@color/tabSelectColor"
+        app:elevation="12dp" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/view_pager"

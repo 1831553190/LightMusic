@@ -136,7 +136,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		}
 
 		public void playList(List<MediaData> dataList,int postion){
-			if (dataList.equals(playList)&&postion==currentPosition){
+			if (dataList.equals(getPlayList())&&postion==currentPosition){
 				playAndPause();
 			}else if (dataList.equals(playList)){
 				play(postion);
@@ -346,6 +346,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			update();
 		}
 		binder.songChange();
+		binder.statePlayAndPauseChange();
 	}
 	
 	@Override
@@ -452,6 +453,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			mediaStyle=new Notification.MediaStyle();
 			mediaSession=new MediaSession(this,"music");
 			mediaStyle.setMediaSession(mediaSession.getSessionToken());
+			mediaStyle.setShowActionsInCompactView(new int[]{0,1,2});
 			mediaMetadata=new MediaMetadata.Builder();
 			mediaSession.setMetadata(mediaMetadata.build());
 			playbackState=new PlaybackState.Builder().setState(PlaybackState.STATE_PLAYING,currentPosition,System.currentTimeMillis()).setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS).build();

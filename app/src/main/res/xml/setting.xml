@@ -29,4 +29,11 @@
         android:key="showBlru"
         android:summary="播放界面使用"
         android:title="高斯模糊" />
+
+    <CheckBoxPreference
+        android:key="themeDark"
+        android:summary="切换夜间模式（可能需要重启应用后生效）"
+        android:title="夜间模式"
+        />
+
 </PreferenceScreen>

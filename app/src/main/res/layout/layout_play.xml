@@ -56,6 +56,15 @@
 
     <include layout="@layout/layout_play_top"/>
 
+
+
+
+
+
+
+
+
+
 <!--    <androidx.cardview.widget.CardView-->
 <!--        android:id="@+id/bottomPlayLayout"-->
 <!--        android:layout_width="match_parent"-->
@@ -67,7 +76,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomPlayLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -80,8 +89,8 @@
             android:layout_marginStart="50dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="50dp"
-            android:layout_marginBottom="8dp"
             android:gravity="center"
+            app:layout_constraintVertical_chainStyle="spread"
             android:orientation="horizontal"
             app:layout_constraintBottom_toTopOf="@+id/repeatBtn"
             app:layout_constraintEnd_toEndOf="parent"
@@ -144,6 +153,7 @@
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toEndOf="@+id/leftTime"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
             app:updataAPPBarHeight="2dp"
             app:updataAPPTextVisibility="false" />
 
@@ -175,6 +185,7 @@
             android:layout_marginBottom="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout"
             app:layout_constraintBottom_toBottomOf="@+id/bottomPlayLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

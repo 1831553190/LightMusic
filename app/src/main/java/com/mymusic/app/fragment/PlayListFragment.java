@@ -39,12 +39,17 @@ public class PlayListFragment extends Fragment {
     Intent intent;
     ImageView cover;
     private UpdateMag updateMag;
+    View view;
+
 
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view=inflater.inflate(R.layout.layout_playlist,container,false);
+//        setRetainInstance(true);
+        if (view==null) {
+            view = inflater.inflate(R.layout.layout_playlist, container, false);
+        }
         init(view);
         return view;
     }

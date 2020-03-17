@@ -31,13 +31,19 @@ public class FragmentMain extends Fragment {
     ViewPager viewPager;
     @BindView(R.id.tabs)
     TabLayout tabs;
+    View view;
+
 
 
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view=inflater.inflate(R.layout.layout_main,container,false);
+        setRetainInstance(true);
+
+        if (view==null) {
+            view = inflater.inflate(R.layout.layout_main, container, false);
+        }
         ButterKnife.bind(this,view);
         final List<Fragment> fragmentList = new ArrayList<>();
         viewPager = view.findViewById(R.id.view_pager);
