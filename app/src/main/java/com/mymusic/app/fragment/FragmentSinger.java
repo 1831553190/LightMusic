@@ -105,7 +105,7 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 
 	@Override
 	public void serverConnect() {
-		if (artistList.isEmpty()){
+		if (artistList!=null&&artistList.isEmpty()){
 			updateMag.getData(2);
 		}
 	}

@@ -33,6 +33,7 @@ import java.text.DecimalFormat;
  * </pre>
  * 包    名 : com.fly.myview.progressbar
  * 作    者 : FLY
+ * 修    改 : eswd
  * 创建时间 : 2018/9/6
  * 描述: 更新下载的进度条
  */
@@ -152,6 +153,12 @@ public class MyProgressBar extends View {
         textPaint.setStrokeCap(Paint.Cap.SQUARE);
         textPaint.setColor(Color.GRAY);
         textCenter=0;
+    }
+
+
+
+    public void setProgressColor(int color){
+        mReachedBarColor=color;
     }
 
     @Override

@@ -4,8 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/play_background"
+    android:background="@android:color/transparent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintLeft_toLeftOf="parent"
+    app:layout_constraintRight_toRightOf="parent"
     tools:context=".PlayingActivity">
 
 
@@ -27,10 +31,8 @@
         android:visibility="gone"
         android:layout_width="212dp"
         android:layout_height="212dp"
-        app:layout_constraintBottom_toBottomOf="@+id/playImg"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/playImg" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 <!--    <com.mymusic.app.view.MyCardView-->
@@ -43,24 +45,19 @@
 <!--        app:layout_constraintStart_toStartOf="parent"-->
 <!--        app:layout_constraintTop_toTopOf="parent">-->
 
-        <com.mymusic.app.view.MyImageView
-            android:id="@+id/playImg"
-            android:layout_width="0dp"
-            android:scaleType="fitXY"
-            android:layout_height="wrap_content"
-            app:srcCompat="@drawable/cover_background"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+
 <!--    </com.mymusic.app.view.MyCardView>-->
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/includeTopLayout"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/playImg"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android">
+        android:layout_marginTop="64dp"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@+id/bottomPlayLayout"
+        app:layout_constraintRight_toLeftOf="@+id/playImg"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
 
         <TextView
@@ -70,8 +67,10 @@
             android:layout_marginStart="32dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="32dp"
+            android:gravity="center"
             android:singleLine="true"
             android:textSize="18sp"
+            android:transitionName=""
             app:layout_constraintBottom_toTopOf="@+id/playSongArtist"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -86,6 +85,7 @@
             android:layout_marginEnd="32dp"
             android:layout_marginRight="32dp"
             android:layout_marginBottom="8dp"
+            android:gravity="center"
             android:singleLine="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -96,8 +96,15 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-
-
+    <com.mymusic.app.view.MyImageView
+        android:id="@+id/playImg"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/cover_background" />
 
 
 
@@ -115,12 +122,14 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomPlayLayout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/playImg"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/includeTopLayout">
+        app:layout_constraintTop_toBottomOf="@+id/includeTopLayout"
+        app:layout_constraintVertical_chainStyle="spread">
 
         <LinearLayout
             android:id="@+id/linearLayout"
@@ -130,12 +139,11 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="50dp"
             android:gravity="center"
-            app:layout_constraintVertical_chainStyle="spread"
             android:orientation="horizontal"
-            app:layout_constraintBottom_toTopOf="@+id/repeatBtn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/seekBar">
+            app:layout_constraintTop_toBottomOf="@+id/seekBar"
+            app:layout_constraintVertical_chainStyle="spread">
 
 
             <ImageView
@@ -168,6 +176,20 @@
                 android:clickable="true"
                 android:padding="16dp"
                 app:srcCompat="@drawable/ic_skip_next_black_24dp" />
+
+
+            <ImageView
+                android:id="@+id/repeatBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                app:layout_constraintBottom_toBottomOf="@+id/bottomPlayLayout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@drawable/ic_baseline_notes_24" />
+
         </LinearLayout>
 
 
@@ -189,11 +211,11 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
             android:padding="12dp"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
             app:layout_constraintEnd_toStartOf="@+id/rightTime"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toEndOf="@+id/leftTime"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
             app:updataAPPBarHeight="2dp"
             app:updataAPPTextVisibility="false" />
 
@@ -216,20 +238,6 @@
             app:layout_constraintBottom_toBottomOf="@+id/seekBar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/seekBar" />
-
-
-        <ImageView
-            android:id="@+id/repeatBtn"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginBottom="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-            app:layout_constraintBottom_toBottomOf="@+id/bottomPlayLayout"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_baseline_notes_24" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,5 +10,4 @@ public interface UpdateMag {
     void getData(int index);
     void playList(List<MediaData> dataList ,int pos);
     MediaService.Binder getBider();
-    void hideToolBar();
 }

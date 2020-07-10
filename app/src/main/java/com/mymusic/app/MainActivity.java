@@ -12,18 +12,15 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
-import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -49,7 +46,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory;
 import com.google.android.material.snackbar.Snackbar;
@@ -63,11 +59,11 @@ import com.mymusic.app.inter.ActivityToFragment;
 import com.mymusic.app.inter.ServiceUpdate;
 import com.mymusic.app.inter.UpdateMag;
 import com.mymusic.app.util.BitmapTransform;
+import com.mymusic.app.util.PicTransform;
 import com.mymusic.app.view.BottomLayout;
+import com.mymusic.app.view.MyImageView;
 import com.mymusic.app.view.MySmoothSeekBar;
 import com.mymusic.app.view.SlidingUpPanelLayout;
-import com.mymusic.app.view.TimerCircleView;
-import com.squareup.picasso.Picasso;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -180,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     @BindView(R.id.playQueue)
     RecyclerView recyclerView;
     @BindView(R.id.playImg)
-    ImageView playAlbumImg;
+    MyImageView playAlbumImg;
 
     List<MediaData> queueList,tempList;
     @BindView(R.id.playQueueSlide)
@@ -208,6 +204,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //        if (!show){
 //            albumCard.setRadius(DensityUtil.dip2px(this,2));
 //        }
+
         repeatType=preferences.getInt("repeatType",0);
         switch (repeatType){
             case 0:
@@ -239,6 +236,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 handler.post(runnable);
             }
         });
+
 
 
         secondSlidePanel.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -351,6 +349,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         playSongArtist.setTextColor(colorStateList[1]);
         leftTime.setTextColor(colorStateList[1]);
         rightTime.setTextColor(colorStateList[1]);
+        progressBar.setProgressColor(colorStateList[1].getDefaultColor());
     }
 
 
@@ -451,6 +450,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 canvas.drawBitmap(outputBitmap,new Matrix(),paint);
 
                 // 将模糊后的 outputBitmap 设为目标 View 的背景
+
                 secondSlidePanel.setBackground(new BitmapDrawable(getResources(), outputBitmap));
 //                secondSlidePanel.setBackgroundColor(palette.getLightMutedColor(Color.WHITE));
                 rs.destroy();
@@ -559,50 +559,45 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         if (mediaData.getAlbumID()!=albumId){
             albumId=mediaData.getAlbumID();
             FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(this, mediaData.getAlbumID());
-            Bitmap bitmap=fd==null?getBitmap(this,R.drawable.ic_audiotrack_black_24dp):addGradient(BitmapFactory.decodeFileDescriptor(fd));
-
-            Glide.with(this)
-                    .load(bitmap)
+            Bitmap bitmap=fd==null?getBitmap(this,R.drawable.ic_audiotrack_black_24dp): PicTransform.addGradient(BitmapFactory.decodeFileDescriptor(fd));
+//            Bitmap sourceBitmap=fd==null?getBitmap(this,R.drawable.ic_audiotrack_black_24dp):BitmapFactory.decodeFileDescriptor(fd);
+            Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
+            int ori = mConfiguration.orientation; //获取屏幕方向
+            if (ori == mConfiguration.ORIENTATION_LANDSCAPE) {
+                Glide.with(this)
+                        .load(binder.getBitmap())
 //                    .placeholder(playAlbumImg.getDrawable())
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .transform(new BitmapTransform())
-                    .error(new BitmapDrawable(bitmap))
-                    .into(playAlbumImg);
+                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .error(new BitmapDrawable(bitmap))
+                        .into(playAlbumImg);
+                Glide.with(this)
+                        .load(bitmap)
+                        .error(R.mipmap.cover_pic)
+                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .into(albumImg);
+            } else if (ori == mConfiguration.ORIENTATION_PORTRAIT) {
+                //竖屏
+
+                Glide.with(this)
+                        .load(bitmap)
+//                    .placeholder(playAlbumImg.getDrawable())
+                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .transform(new BitmapTransform())
+                        .error(new BitmapDrawable(bitmap))
+                        .into(playAlbumImg);
+                Glide.with(this)
+                        .load(binder.getBitmap())
+                        .error(R.mipmap.cover_pic)
+                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .into(albumImg);
+            }
+
         }
 
 
 
 
     }
-
-    public Bitmap addGradient(Bitmap src) {
-        int w = src.getWidth();
-        int h = src.getHeight();
-        int GRADIENT_HEIGHT = h/4;
-
-        Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(overlay);
-
-        canvas.drawBitmap(src, 0, 0, null);
-        Palette palette=Palette.from(src).generate();
-
-        Paint paint = new Paint();
-        LinearGradient shader = new LinearGradient(0,  h -GRADIENT_HEIGHT, 0, h, 0xffffffff,0x00ffffff , Shader.TileMode.CLAMP);
-        paint.setShader(shader);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
-        canvas.drawRect(0, h - GRADIENT_HEIGHT, w, h, paint);
-        return overlay;
-    }
-
-
-
-
-
-
-
-
-
-
 
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
@@ -878,7 +873,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     @Override
     protected void onResume() {
         super.onResume();
-        if(binder!=null){
+        if(binder!=null&&binder.getMediaplay().isPlaying()){
             binder.stateResume();
             binder.statePlayAndPauseChange();
             binder.songChange();
@@ -907,11 +902,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             }
         }
 
-        Glide.with(this)
-                .load(binder.getBitmap())
-                .error(R.mipmap.cover_pic)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(albumImg);
+
 
 
         artist.setText(data.getArtist());
@@ -920,6 +911,10 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
 
+    @OnClick({R.id.bottomLayout,R.id.bototmAlbumImg})
+    public void bottomClick(){
+        slidePanel.expandPanel();
+    }
 
 
     private boolean isPlay() {
@@ -1039,15 +1034,13 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         }
     }
 
-    @Override
-    public void hideToolBar() {
-        getSupportActionBar().hide();
-    }
+
 
     @Override
     public void onBackPressed() {
         Log.d("TAG", "settingIsVisible: "+getSupportFragmentManager().findFragmentByTag("setting").isVisible());
         Log.d("TAG", "mainIsVisible: "+getSupportFragmentManager().findFragmentByTag("fragmentMain").isVisible());
+
         if (secondSlidePanel.isPanelExpanded()){
             secondSlidePanel.collapsePanel();
         }else if(slidePanel.isPanelExpanded()){
@@ -1089,6 +1082,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 serviceUpdate.updateSongInfo();
             }
         }
+        getSupportActionBar().show();
 
     }
 

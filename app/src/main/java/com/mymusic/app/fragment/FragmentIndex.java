@@ -136,7 +136,7 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 
 	@Override
 	public void serverConnect() {
-		if (updateMag.getBider()!=null&&songList.isEmpty()) {
+		if (songList!=null&&updateMag.getBider()!=null&&songList.isEmpty()) {
 			updateMag.getData(0);
 		}
 	}

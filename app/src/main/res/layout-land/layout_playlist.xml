@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PlayListActivity">
+    <include layout="@layout/fragment_recycler"/>
+
+
+
+    <TextView
+        android:id="@+id/cover_nameText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="4dp"
+        android:singleLine="true"
+        android:textSize="32sp"
+        app:layout_constraintBottom_toBottomOf="@+id/playlist_cover"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/playlist_cover" />
+
+
+    <com.mymusic.app.view.MyImageView
+        android:id="@+id/playlist_cover"
+        style="?android:windowBackground"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:elevation="4dp"
+        android:scaleType="centerCrop"
+        android:transitionName="@string/transitionName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/cover_background" />
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

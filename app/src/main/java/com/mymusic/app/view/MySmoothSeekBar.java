@@ -6,7 +6,9 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 import com.mymusic.app.R;
@@ -24,6 +26,9 @@ public class MySmoothSeekBar extends MyProgressBar {
     static float progress;
     float va;
     int stat=0;
+    static float wtest=0;
+    static float animIn;
+    static float intx=0;
 
 
     public MySmoothSeekBar(Context context) {
@@ -53,6 +58,7 @@ public class MySmoothSeekBar extends MyProgressBar {
         prePaint.setColor(getResources().getColor(R.color.a66));
         prePaint.setStrokeCap(Paint.Cap.ROUND);
         prePaint.setStrokeWidth(dotDiameter);
+        animIn=dotDiameter;
     }
 
     public void setOnSeekChangeListener(OnSeekChangeListener onSeekChangeListener){
@@ -88,27 +94,91 @@ public class MySmoothSeekBar extends MyProgressBar {
     }
 
     @Override
+    public void setProgressColor(int color){
+        paint.setColor(color);
+        super.setProgressColor(color);
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
         if (isPressed()){
-            canvas.drawCircle((float)super.mReachedRectF.right,(float) weigtHeight/2, (float) (dotDiameter*1.2),paint);
-            canvas.drawCircle((float)super.mReachedRectF.right,(float) weigtHeight/2, dotDiameter*2,prePaint);
+            canvas.drawCircle((float)super.mReachedRectF.right,(float) weigtHeight/2, animIn,paint);
+            canvas.drawCircle((float)super.mReachedRectF.right,(float) weigtHeight/2, wtest*2,prePaint);
         }else{
-            canvas.drawCircle((float)super.mReachedRectF.right,(float) weigtHeight/2,dotDiameter,paint);
+            canvas.drawCircle((float)super.mReachedRectF.right,(float) weigtHeight/2,animIn,paint);
+            canvas.drawCircle((float)super.mReachedRectF.right,(float) weigtHeight/2, wtest,prePaint);
         }
     }
+
+
+
+    void animTest(){
+        ValueAnimator valueAnimator=ValueAnimator.ofFloat(0,dotDiameter);
+        valueAnimator.setInterpolator(new DecelerateInterpolator());
+        valueAnimator.setDuration(200);
+        valueAnimator.addUpdateListener(animation -> {
+            wtest= (float) animation.getAnimatedValue();
+            invalidate();
+//            Log.d("progresswtese", "animTest: "+wtest);
+
+        });
+        valueAnimator.start();
+    }
+    void animIN(){
+        ValueAnimator valueAnimator=ValueAnimator.ofFloat(dotDiameter,dotDiameter*1.2F);
+        valueAnimator.setInterpolator(new DecelerateInterpolator());
+        valueAnimator.setDuration(200);
+        valueAnimator.addUpdateListener(animation -> {
+            animIn= (float) animation.getAnimatedValue();
+            invalidate();
+//            Log.d("progresswtese", "animTest: "+wtest);
+
+        });
+        valueAnimator.start();
+    }
+    void animTestOut(){
+        ValueAnimator valueAnimator=ValueAnimator.ofFloat(dotDiameter,0);
+        valueAnimator.setInterpolator(new DecelerateInterpolator());
+        valueAnimator.setDuration(150);
+        valueAnimator.addUpdateListener(animation -> {
+            wtest= (float) animation.getAnimatedValue();
+            invalidate();
+//            Log.d("progresswtese", "animTest: "+wtest);
+        });
+        valueAnimator.start();
+    }
+    void animOut(){
+        ValueAnimator valueAnimator=ValueAnimator.ofFloat(dotDiameter*1.2F,dotDiameter);
+        valueAnimator.setInterpolator(new DecelerateInterpolator());
+        valueAnimator.setDuration(150);
+        valueAnimator.addUpdateListener(animation -> {
+            animIn= (float) animation.getAnimatedValue();
+            invalidate();
+//            Log.d("progresswtese", "animTest: "+wtest);
+
+        });
+        valueAnimator.start();
+    }
+
+
+
+
 
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
+                intx=event.getX();
                 stat=1;
                 if (onSeekChangeListener!=null){
                     onSeekChangeListener.onStartTrack(this);
                 }
                 setPressed(true);
+                animTest();
+                animIN();
                 setProgress(len(event.getX())/weigtWidth*getMax());
                 break;
 
@@ -116,12 +186,16 @@ public class MySmoothSeekBar extends MyProgressBar {
                 if (onSeekChangeListener!=null) {
                     onSeekChangeListener.onProgressChange(this);
                 }
+                setProgress(progress+(event.getX()-intx)/weigtWidth*getMax());
                 setProgress(len(event.getX())/weigtWidth*getMax());
                 break;
 
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 setPressed(false);
+                animOut();
+                animTestOut();
+//                setProgress(event.getX());
                 setProgress(len(event.getX())/weigtWidth*getMax());
                 if (onSeekChangeListener!=null) {
                     onSeekChangeListener.onStopTrack(this);
