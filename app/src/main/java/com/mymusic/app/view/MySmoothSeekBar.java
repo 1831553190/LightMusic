@@ -29,6 +29,8 @@ public class MySmoothSeekBar extends MyProgressBar {
     static float wtest=0;
     static float animIn;
     static float intx=0;
+    ValueAnimator vl;
+
 
 
     public MySmoothSeekBar(Context context) {
@@ -100,6 +102,11 @@ public class MySmoothSeekBar extends MyProgressBar {
     }
 
     @Override
+    public float getProgress() {
+        return progress;
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
@@ -164,8 +171,17 @@ public class MySmoothSeekBar extends MyProgressBar {
 
 
 
-
-
+    private void animDown(float p){
+        vl = ValueAnimator.ofFloat(progress,p+600f);
+        vl.setInterpolator(new DecelerateInterpolator());
+        vl.setDuration(650);
+        vl.addUpdateListener(animation -> {
+            progress=(float) animation.getAnimatedValue();
+            setProgress(progress);
+            postInvalidateOnAnimation();
+        });
+        vl.start();
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -175,18 +191,23 @@ public class MySmoothSeekBar extends MyProgressBar {
                 stat=1;
                 if (onSeekChangeListener!=null){
                     onSeekChangeListener.onStartTrack(this);
+                    animDown(len(event.getX())/weigtWidth*getMax());
                 }
                 setPressed(true);
                 animTest();
                 animIN();
-                setProgress(len(event.getX())/weigtWidth*getMax());
+
+//                setProgress();
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 if (onSeekChangeListener!=null) {
                     onSeekChangeListener.onProgressChange(this);
                 }
-                setProgress(progress+(event.getX()-intx)/weigtWidth*getMax());
+                if (Math.abs(event.getX()-intx)>5){
+                    vl.cancel();
+                }
+//                setProgress(progress+(event.getX()-intx)/weigtWidth*getMax());
                 setProgress(len(event.getX())/weigtWidth*getMax());
                 break;
 
@@ -195,7 +216,6 @@ public class MySmoothSeekBar extends MyProgressBar {
                 setPressed(false);
                 animOut();
                 animTestOut();
-//                setProgress(event.getX());
                 setProgress(len(event.getX())/weigtWidth*getMax());
                 if (onSeekChangeListener!=null) {
                     onSeekChangeListener.onStopTrack(this);
