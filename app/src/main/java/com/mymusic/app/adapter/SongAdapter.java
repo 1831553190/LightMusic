@@ -2,6 +2,7 @@ package com.mymusic.app.adapter;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,19 +34,20 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 	SongAdapter.OnItemLongClickListener onItemLongClickListener;
 	Context context;
 	SongAdapter.Holder holder;
-	
+	View view;
+	ColorStateList colorStateList;
+
+
 	public SongAdapter(Context context, List<MediaData> songList,List<MediaData> tempList){
 		this.songList=songList;
 		this.context=context;
 		this.tempList=tempList;
+		colorStateList=null;
 	}
 
 
 	public void setTextColor(ColorStateList stateList){
-		if (holder!=null){
-			holder.song_title.setTextColor(stateList);
-			holder.song_artist.setTextColor(stateList);
-		}
+		this.colorStateList=stateList;
 	}
 
 
@@ -97,7 +99,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 	@NonNull
 	@Override
 	public SongAdapter.Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-		View view= LayoutInflater.from(context).inflate(R.layout.main_item,parent,false);
+		view = LayoutInflater.from(context).inflate(R.layout.main_item,parent,false);
 		holder=new Holder(view);
 		return holder;
 	}
@@ -106,6 +108,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 	public void onBindViewHolder(@NonNull SongAdapter.Holder holder, final int position) {
 		holder.song_title.setText(tempList.get(position).getTitle());
 		holder.song_artist.setText(tempList.get(position).getArtist());
+		if (colorStateList!=null){
+			holder.song_title.setTextColor(colorStateList);
+			holder.song_artist.setTextColor(colorStateList);
+		}
 		Glide.with(holder.itemView)
 				.load(MediaFactory.getAlbumArtGetDescriptorUri(context,tempList.get(position).getAlbumID()))
 				.apply(RequestOptions.bitmapTransform(new RoundedCorners(2)).override(200,200))

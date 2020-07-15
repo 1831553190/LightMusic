@@ -199,6 +199,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     boolean show=false;
     DrawableCrossFadeFactory factory;
     PlayPauseDrawable playPauseDrawable;
+    SongAdapter queueAdapter;
+
 
 
 
@@ -283,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
         queueList=new ArrayList<>();
         tempList=new ArrayList<>();
-        SongAdapter queueAdapter=new SongAdapter(this,queueList,tempList);
+        queueAdapter = new SongAdapter(this,queueList,tempList);
         recyclerView.setAdapter(queueAdapter);
         queueAdapter.setOnItemClickListener(position -> binder.play(position));
     }
@@ -359,6 +361,11 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         //文本着色
         playSongName.setTextColor(colorStateList[1]);
         playSongArtist.setTextColor(colorStateList[1]);
+        if (queueAdapter!=null){
+            queueAdapter.setTextColor(colorStateList[1]);
+            queueAdapter.notifyDataSetChanged();
+
+        }
 
         //文本着色
         leftTime.setTextColor(colorStateList[1]);
