@@ -59,7 +59,7 @@
         app:panelHeight="50dp"
         app:shadowHeight="1dp"
         app:directOffset="true"
-        app:dragView="@+id/queueLayout">
+        app:dragView="@+id/queueLayoutText">
 
         <LinearLayout
             android:id="@+id/playView"
@@ -99,7 +99,7 @@
                 <TextView
                     android:clickable="true"
                     android:background="?attr/selectableItemBackground"
-                    android:id="@+id/queueLayout"
+                    android:id="@+id/queueLayoutText"
                     android:text="播放列表"
                     android:gravity="center"
                     android:layout_width="match_parent"
@@ -110,6 +110,7 @@
                 android:layout_height="80dp">
 
                 <TextView
+                    android:id="@+id/playingText"
                     android:text="正在播放"
                     android:gravity="center"
                     android:background="?attr/selectableItemBackground"

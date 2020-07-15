@@ -92,7 +92,7 @@ public class MySmoothSeekBar extends MyProgressBar {
     @Override
     public synchronized void setProgress(float progress) {
         super.setProgress(progress);
-        MySmoothSeekBar.progress =progress;
+        MySmoothSeekBar.progress = progress;
     }
 
     @Override
@@ -201,10 +201,8 @@ public class MySmoothSeekBar extends MyProgressBar {
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if (onSeekChangeListener!=null) {
+                if (Math.abs(event.getX()-intx)>5&&onSeekChangeListener!=null) {
                     onSeekChangeListener.onProgressChange(this);
-                }
-                if (Math.abs(event.getX()-intx)>5){
                     vl.cancel();
                 }
 //                setProgress(progress+(event.getX()-intx)/weigtWidth*getMax());

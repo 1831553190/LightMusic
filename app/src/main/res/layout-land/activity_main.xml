@@ -134,7 +134,7 @@
 
 
             <TextView
-                android:id="@+id/queueLayout"
+                android:id="@+id/queueLayoutText"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:background="?attr/selectableItemBackground"
@@ -148,6 +148,7 @@
                 android:background="@android:color/transparent">
 
                 <TextView
+                    android:id="@+id/playingText"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:background="?attr/selectableItemBackground"

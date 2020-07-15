@@ -8,4 +8,7 @@
     <dimen name="circletimer_circle_size">4dp</dimen>
     <dimen name="seekbar_dot_size">6dp</dimen>
     <dimen name="circletimer_dot_size">4dp</dimen>
+    <dimen name="pause_bar_width">5dp</dimen>
+    <dimen name="pause_bar_height">14dp</dimen>
+    <dimen name="pause_bar_distance">4dp</dimen>
 </resources>

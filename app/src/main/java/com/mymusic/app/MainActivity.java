@@ -17,6 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
@@ -48,6 +49,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.mymusic.app.adapter.SongAdapter;
 import com.mymusic.app.bean.MediaData;
@@ -166,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     @BindView(R.id.btnPlayPre)
     ImageView btnPlayPre;
     @BindView(R.id.btnPlayPlay)
-    ImageView btnPlayPlay;
+    FloatingActionButton btnPlayPlay;
     @BindView(R.id.btnPlayNext)
     ImageView btnPlayNext;
     @BindView(R.id.playSongName)
@@ -183,6 +185,11 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     SlidingUpPanelLayout secondSlidePanel;
     private int reflushRate;
 
+    @BindView(R.id.queueLayoutText)
+    TextView queueText;
+    @BindView(R.id.playingText)
+    TextView playingText;
+
     @BindView(R.id.repeatBtn)
     ImageView repeatBtn;
     @BindView(R.id.play_background)
@@ -191,6 +198,8 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     int repeatType=-1;
     boolean show=false;
     DrawableCrossFadeFactory factory;
+    PlayPauseDrawable playPauseDrawable;
+
 
 
     boolean showBlru=false;
@@ -204,6 +213,11 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //        if (!show){
 //            albumCard.setRadius(DensityUtil.dip2px(this,2));
 //        }
+
+
+        playPauseDrawable = new PlayPauseDrawable(this);
+
+        btnPlayPlay.setImageDrawable(playPauseDrawable);
 
         repeatType=preferences.getInt("repeatType",0);
         switch (repeatType){
@@ -334,26 +348,26 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     }
 
 
-
-
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void btnTint(ColorStateList...colorStateList){
 //        按钮着色
         btnPlayPre.setImageTintList(colorStateList[1]);
-        btnPlayPlay.setImageTintList(colorStateList[1]);
+
+        playPauseDrawable.setColor(colorStateList[1]);
         btnPlayNext.setImageTintList(colorStateList[1]);
         repeatBtn.setImageTintList(colorStateList[1]);
         //文本着色
         playSongName.setTextColor(colorStateList[1]);
         playSongArtist.setTextColor(colorStateList[1]);
+
+        //文本着色
         leftTime.setTextColor(colorStateList[1]);
         rightTime.setTextColor(colorStateList[1]);
         progressBar.setProgressColor(colorStateList[1].getDefaultColor());
+        queueText.setTextColor(colorStateList[1]);
+        playingText.setTextColor(colorStateList[1]);
+
     }
-
-
-
 
 
 
@@ -379,7 +393,14 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
 
+    public int getBrighterColor(int color){     //增加颜色亮度
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv); // convert to hsv
 
+        hsv[1] = hsv[1] - 0.1f; // less saturation
+        hsv[2] = hsv[2] + 0.1f; // more brightness
+        return Color.HSVToColor(hsv);
+    }
 
     ServiceUpdate serviceUpdate = new ServiceUpdate() {
         @Override
@@ -387,12 +408,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             replaceAlbumArt();
 
             showBottom(binder.getMediaData());
-
-
-
-
-
-
 
 
             FileDescriptor fd=MediaFactory.getAlbumArtGetDescriptor(MainActivity.this,binder.getMediaData().getAlbumID());
@@ -406,6 +421,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
             Bitmap bitmap1=Bitmap.createBitmap(bitmap,0,0,10,10);
 //        secondSlidePanel.setBackground(palette.getLightVibrantColor(Color.WHITE));
 
+            btnPlayPlay.setBackgroundTintList(ColorStateList.valueOf(getBrighterColor(palette.getLightMutedColor(Color.WHITE))));
 
 
             if (showBlru){          //高斯模糊背景
@@ -455,6 +471,11 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //                secondSlidePanel.setBackgroundColor(palette.getLightMutedColor(Color.WHITE));
                 rs.destroy();
                 Palette palette1=Palette.from(outputBitmap).generate();
+//                btnPlayPlay.setBackgroundTintList(
+//                        ColorStateList.valueOf(palette.getLightMutedColor(getResources().getColor(android.R.color.white))));
+
+
+
                 if (ColorUtils.calculateLuminance(outputBitmap.getPixel(0,0))>0.5){
                     btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),
                             ColorStateList.valueOf(palette.getDarkVibrantColor(palette.getDarkMutedColor(
@@ -509,10 +530,12 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         @Override
         public void statePlayAndPauseChange() {
             if (binder.isPlaying()) {
-                btnPlayPlay.setImageResource(R.drawable.ic_pause_black_24dp);
+                playPauseDrawable.setPause(true);
+//                btnPlayPlay.setImageResource(R.drawable.ic_pause_black_24dp);
                 btnPlay.setImageResource(R.drawable.ic_pause_black_24dp);
             } else {
-                btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                playPauseDrawable.setPlay(true);
+//                btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
                 btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
             }
         }
@@ -643,7 +666,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -665,8 +687,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 window.setAttributes(attributes);
             }
         }
-
-
 
         ButterKnife.bind(this);
 
@@ -805,8 +825,10 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
     private void progressInit() {
         Log.d("bottomLayout", "progressInit: "+bottomLayout.getProgress());
         if (!animiStart){
-            animator= ValueAnimator.ofInt((int)bottomLayout.getProgress(),binder.getMediaplay().getCurrentPosition()+750);
-            animator.setDuration(750);
+            int dua= binder.getMediaplay().getCurrentPosition()*500/binder.getMediaplay().getDuration();
+            Log.d("currdua", "progressInit: "+dua);
+            animator= ValueAnimator.ofInt((int)bottomLayout.getProgress(),binder.getMediaplay().getCurrentPosition()+(1250-dua));
+            animator.setDuration(1250-dua);
             animator.setInterpolator(new AccelerateDecelerateInterpolator());
             animator.addUpdateListener(animation -> {
                 bottomLayout.setProgress((int) animation.getAnimatedValue());

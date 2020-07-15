@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.animation.DecelerateInterpolator;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
@@ -62,6 +63,10 @@ public class BottomLayout extends ConstraintLayout {
     public void setMax(int max){
         this.max=max;
     }
+    public int getMax(){
+        return max;
+    }
+
     public void setColor(int color){
         if (this.color==color){
             return;
@@ -76,6 +81,22 @@ public class BottomLayout extends ConstraintLayout {
         colorAnim.start();
         this.color=color;
     }
+
+//    void animTestOut(){
+//        ValueAnimator valueAnimator=ValueAnimator.ofFloat(dotDiameter,0);
+//        valueAnimator.setInterpolator(new DecelerateInterpolator());
+//        valueAnimator.setDuration(150);
+//        valueAnimator.addUpdateListener(animation -> {
+//            wtest= (float) animation.getAnimatedValue();
+//            invalidate();
+////            Log.d("progresswtese", "animTest: "+wtest);
+//
+//        });
+//        valueAnimator.start();
+//    }
+
+
+
 
     @Override
     public boolean isFocused() {

@@ -1,6 +1,7 @@
 package com.mymusic.app.adapter;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,12 +30,22 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 	List<MediaData> songList,tempList;
 	;
 	SongAdapter.OnItemClickListener onItemClickListener;
+	SongAdapter.OnItemLongClickListener onItemLongClickListener;
 	Context context;
+	SongAdapter.Holder holder;
 	
 	public SongAdapter(Context context, List<MediaData> songList,List<MediaData> tempList){
 		this.songList=songList;
 		this.context=context;
 		this.tempList=tempList;
+	}
+
+
+	public void setTextColor(ColorStateList stateList){
+		if (holder!=null){
+			holder.song_title.setTextColor(stateList);
+			holder.song_artist.setTextColor(stateList);
+		}
 	}
 
 
@@ -72,16 +83,23 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 	public interface OnItemClickListener{
 		void onItemClick(int position);
 	}
+	public interface OnItemLongClickListener{
+		void onItemLongClick(View view,int position);
+	}
 	
 	public void setOnItemClickListener(SongAdapter.OnItemClickListener onItemClickListener){
 		this.onItemClickListener=onItemClickListener;
+	}
+	public void setOnItemLongClickListener(SongAdapter.OnItemLongClickListener onItemLongClickListener){
+		this.onItemLongClickListener=onItemLongClickListener;
 	}
 
 	@NonNull
 	@Override
 	public SongAdapter.Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 		View view= LayoutInflater.from(context).inflate(R.layout.main_item,parent,false);
-		return new SongAdapter.Holder(view);
+		holder=new Holder(view);
+		return holder;
 	}
 	
 	@Override
@@ -102,6 +120,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 				}
 			}
 		});
+		holder.itemView.setOnLongClickListener(v -> {
+			if (onItemLongClickListener!=null){
+				onItemLongClickListener.onItemLongClick(v,position);
+			}
+			return true;
+		});
 	}
 
 	@Override
@@ -109,8 +133,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 		return tempList.size();
 	}
 	
-	class Holder extends RecyclerView.ViewHolder{
-		TextView song_title,song_artist;
+	 class Holder extends RecyclerView.ViewHolder{
+		public TextView song_title,song_artist;
 		AppCompatImageView imgAlbumCover;
 		public Holder(@NonNull View itemView) {
 			super(itemView);
