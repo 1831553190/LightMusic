@@ -9,6 +9,7 @@
     app:dragViewClickable="true"
     app:initialState="hidden"
     app:slidePanelOffset="66dp"
+    app:shadowHeight="6dp"
     android:id="@+id/mainSlideLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -57,7 +58,7 @@
         app:fadeColor="@android:color/transparent"
         android:gravity="bottom"
         app:panelHeight="50dp"
-        app:shadowHeight="1dp"
+        app:shadowHeight="6dp"
         app:directOffset="true"
         app:dragView="@+id/queueLayoutText">
 

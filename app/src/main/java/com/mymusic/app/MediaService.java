@@ -26,6 +26,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -458,14 +459,14 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			mediaSession.setMetadata(mediaMetadata.build());
 			playbackState=new PlaybackState.Builder().setState(PlaybackState.STATE_PLAYING,currentPosition,System.currentTimeMillis()).setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS).build();
 			mediaSession.setPlaybackState(playbackState);
-//			mediaSession.setCallback(playCallBack);
 
 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			notificationChannel=new NotificationChannel("listening_music","music", NotificationManager.IMPORTANCE_LOW);
 			notificationManager.createNotificationChannel(notificationChannel);
 		}
-	
+		mediaSession.setCallback(playCallBack);
+
 	
 }
 
