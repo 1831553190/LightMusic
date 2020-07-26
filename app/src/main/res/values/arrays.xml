@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="theme">
+        <item>白天</item>
+        <item>夜间</item>
+        <item>跟随系统</item>
+    </string-array>
+    <string-array name="themes" >
+        <item>light</item>
+        <item>night</item>
+        <item>auto</item>
+    </string-array>
     <string-array name="PLevel">
         <item>极致流畅(1ms(可能会加速耗电))</item>
         <item>流畅(16ms)</item>
@@ -14,4 +24,5 @@
         <item>500</item>
         <item>1000</item>
     </string-array>
+
 </resources>

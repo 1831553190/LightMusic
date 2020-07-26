@@ -34,6 +34,7 @@ import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -83,6 +84,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import java.io.FileDescriptor;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //    FragmentManager fragmentManager;
     SharedPreferences preferences;
     private long albumId=-1;
+    float vol=1.0f;
 
 
 
@@ -206,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
     boolean showBlru=false;
     private FragmentManager fragmentManager=getSupportFragmentManager();
+    private boolean detachVol=false;
 
 
     private void initPlayLayout() {
@@ -722,6 +726,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 .show(fragmentMain)
                 .commit();
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        detachVol=preferences.getBoolean("detachVol",false);
         showBottomProgress= preferences.getBoolean("showProgress",false);
         reflushRate= Integer.parseInt(preferences.getString("level","100"));
         toolbar = findViewById(R.id.toolbar);
@@ -783,6 +788,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         Intent i = new Intent(this, MediaService.class);
         startService(i);
         bindService(i, serviceConnection, Context.BIND_AUTO_CREATE);
+
     }
 
 
@@ -814,11 +820,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 binder.setRepeatType(repeatType);
             }
             binder.statePlayAndPauseChange();
-
-
-
-
-
         }
 
         @Override
@@ -995,6 +996,12 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
         queueList.addAll(dataList);
     }
 
+
+
+
+
+
+
     @Override
     public MediaService.Binder getBider() {
         return binder;
@@ -1008,6 +1015,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 break;
             case R.id.btnPlay:
                 binder.playAndPause();
+
                 break;
             case R.id.btnPre:
                 binder.playPrevious();
@@ -1066,9 +1074,43 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
     @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if(detachVol&&keyCode== KeyEvent.KEYCODE_VOLUME_DOWN){
+            if (binder!=null){
+                binder.volDOWN();
+
+                Snackbar.make(findViewById(android.R.id.content),"音量:"+ new DecimalFormat("#%").format(binder.getVol()/1.0f),Snackbar.LENGTH_SHORT).show();
+            }
+            return true;
+        }else if(detachVol&&keyCode==KeyEvent.KEYCODE_VOLUME_UP) {
+            if (binder!=null){
+                binder.volUP();
+                Snackbar.make(findViewById(android.R.id.content),"音量:"+new DecimalFormat("#%").format(binder.getVol()/1.0f),Snackbar.LENGTH_SHORT).show();
+            }
+            return true;
+        } else {
+            return super.onKeyUp(keyCode, event);
+        }
+    }
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // TODO Auto-generated method stub
+        if(detachVol&&keyCode==KeyEvent.KEYCODE_VOLUME_DOWN){
+            //什么都不做
+            return true;
+        } else if(detachVol&&keyCode==KeyEvent.KEYCODE_VOLUME_UP) {
+            //什么都不做
+            return true;
+        } else {
+            return super.onKeyDown(keyCode, event);
+        }
+    }
+
+
+
+
+    @Override
     public void onBackPressed() {
-        Log.d("TAG", "settingIsVisible: "+getSupportFragmentManager().findFragmentByTag("setting").isVisible());
-        Log.d("TAG", "mainIsVisible: "+getSupportFragmentManager().findFragmentByTag("fragmentMain").isVisible());
 
         if (secondSlidePanel.isPanelExpanded()){
             secondSlidePanel.collapsePanel();
@@ -1111,6 +1153,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
                 serviceUpdate.updateSongInfo();
             }
         }
+        detachVol=preferences.getBoolean("detachVol",false);
         getSupportActionBar().show();
 
     }

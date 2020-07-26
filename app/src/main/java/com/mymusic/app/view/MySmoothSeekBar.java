@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -55,6 +56,7 @@ public class MySmoothSeekBar extends MyProgressBar {
         paint.setColor(getResources().getColor(R.color.colorAccent));
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeWidth(dotDiameter);
+        paint.setShadowLayer(10,0,0, Color.parseColor("#60000000"));
         prePaint = new Paint(Paint.ANTI_ALIAS_FLAG);//抗锯齿
         prePaint.setAntiAlias(true); //防抖动
         prePaint.setColor(getResources().getColor(R.color.a66));

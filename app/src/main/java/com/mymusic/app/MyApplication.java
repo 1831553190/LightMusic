@@ -12,10 +12,16 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(this);
-        if (preferences.getBoolean("themeDark",false)){
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }else{
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        String mode=preferences.getString("themed","auto");
+        if (mode!=null){
+            if (mode.equals("night")){
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }else if(mode.equals("light")){
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }else{
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+            }
         }
+
     }
 }

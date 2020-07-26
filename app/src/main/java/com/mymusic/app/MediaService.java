@@ -73,6 +73,8 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	Bitmap iBitmap;
 	ActionOps actionOps;
 
+	static float vol;
+
 
 	private SharedPreferences sharePreference;
 	
@@ -158,6 +160,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 					currentPosition=0;
 				try {
 					mediaPlayer.reset();
+//					mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 					mediaPlayer.setDataSource(playList.get(position).getFilePath());
 					mediaPlayer.prepare();
 					mediaPlayer.start();
@@ -177,7 +180,28 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				notificationManager.notify(MEDIA_ID,notifyMedia(currentPosition));
 			}
 
-		
+		public void volUP(){
+			if (vol<1.0f){
+				vol+=0.1f;
+			}
+			if (vol>1.0f){
+				vol=1.0f;
+			}
+			mediaPlayer.setVolume(vol,vol);
+		}
+		public void volDOWN(){
+			if (vol>0){
+				vol-=0.1f;
+			}
+			if (vol<0.0f){
+				vol=0.0f;
+			}
+			mediaPlayer.setVolume(vol,vol);
+		}
+		public float getVol(){
+			return vol;
+		}
+
 		public int getState(){
 			return state;
 		}
@@ -323,6 +347,8 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 
 
 
+
+
 		public Bitmap getBitmap() {
 			return bitmap1;
 		}
@@ -426,6 +452,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		mediaDataList= MediaFactory.getMediaList(this, null,0);
 		albumDataList= MediaFactory.getAlbumList(this);
 		artistList= MediaFactory.getArtistList(this);
+
 		playList=new ArrayList<>();
 		queryList=new ArrayList<>();
 		playList.addAll(mediaDataList);
@@ -446,6 +473,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		mediaButtonIntent.setComponent(mComponentName);
 		AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		mAudioManager.registerMediaButtonEventReceiver(mComponentName);
+		vol=1.0f;
 	}
 	
 	

@@ -8,6 +8,19 @@
         android:entryValues="@array/PLevel_value"
         android:defaultValue="100"
         android:summary="改变进度条的刷新率，刷新率越快可能会导致设备加速耗电"/>
+    <ListPreference
+        android:key="themed"
+        android:summary="切换夜间模式（可能需要重启应用后生效）"
+        android:title="夜间模式"
+        android:defaultValue="auto"
+        android:entries="@array/theme"
+        android:entryValues="@array/themes"
+        />
+
+    <CheckBoxPreference
+        android:key="detachVol"
+        android:summary="单独的播放音量大小,只能在应用内调节"
+        android:title="单独音量" />
 
     <CheckBoxPreference
         android:key="showCircleView"
@@ -30,10 +43,6 @@
         android:summary="播放界面使用"
         android:title="高斯模糊" />
 
-    <CheckBoxPreference
-        android:key="themeDark"
-        android:summary="切换夜间模式（可能需要重启应用后生效）"
-        android:title="夜间模式"
-        />
+
 
 </PreferenceScreen>
