@@ -2,4 +2,6 @@
     <string name="app_name">音乐</string>
     <string name="transitionName">cover</string>
     <string name="setting">设置</string>
+    <string name="accessibility_volume_expand" msgid="5946812790999244205">"展开"</string>
+    <string name="accessibility_volume_collapse" msgid="3609549593031810875">"收起"</string>
 </resources>

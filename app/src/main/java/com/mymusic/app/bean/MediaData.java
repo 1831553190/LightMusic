@@ -1,8 +1,6 @@
 package com.mymusic.app.bean;
 
-import android.media.MediaDataSource;
-
-import java.io.FileDescriptor;
+import android.net.Uri;
 
 public class MediaData {
 	
@@ -16,7 +14,17 @@ public class MediaData {
 	String filePath;
 	String albumArtCover;
 	String albumKey;
-	
+	Uri dataUri;
+
+
+	public Uri getDataUri() {
+		return dataUri;
+	}
+
+	public void setDataUri(Uri dataUri) {
+		this.dataUri = dataUri;
+	}
+
 	
 	public String getAlbumKey() {
 		return albumKey;

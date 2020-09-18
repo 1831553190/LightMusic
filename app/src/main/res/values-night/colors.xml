@@ -4,7 +4,8 @@
     <color name="btnTint">@color/cardview_light_background</color>
     <color name="tabSelectColor">@android:color/primary_text_dark</color>
     <color name="tabTextColor">@android:color/secondary_text_dark</color>
-    <color name="tabBackground">@color/backgroundColor</color>
+    <color name="tabBackground">#FF424242</color>
     <color name="textColor">@color/cardview_light_background</color>
+    <color name="windowsBackground">#FF000000</color>
 
 </resources>

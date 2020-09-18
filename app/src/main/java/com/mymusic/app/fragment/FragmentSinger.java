@@ -36,21 +36,32 @@ public class FragmentSinger extends Fragment implements ArtistAdapter.OnItemClic
 	boolean isInit=false;
 
 	UpdateMag updateMag;
-	
-	
+
+
+	static FragmentSinger fragmentSinger;
+	public static Fragment getInstance(){
+		if (fragmentSinger ==null){
+			synchronized (FragmentSinger.class){
+				if (fragmentSinger ==null){
+					fragmentSinger =new FragmentSinger();
+				}
+			}
+		}
+		return fragmentSinger;
+	}
 	
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 //		setRetainInstance(true);
 
-		if (!isInit){
-			if (view==null) {
+//		if (!isInit){
+//			if (view==null) {
 				view = inflater.inflate(R.layout.fragment_recycler, container, false);
-			}
+//			}
 			init(view);
-			isInit=true;
-		}
+//			isInit=true;
+//		}
 		return view;
 	}
 	private void init(View view) {

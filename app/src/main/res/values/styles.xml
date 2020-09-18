@@ -6,17 +6,13 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/windowsBackground</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <!--Android 5.x开始需要把颜色设置透明，否则导航栏会呈现系统默认的浅灰色-->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:actionMenuTextColor">@color/textColor</item>
     </style>
-
-
-
-
-
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
@@ -28,8 +24,25 @@
         <item name="colorControlNormal">@android:color/white</item>
     </style>
 
-
-
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="VolumeButtons" parent="@android:style/Widget.Material.Button.Borderless">
+        <item name="android:background">@drawable/btn_borderless_rect</item>
+    </style>
+
+    <style name="Header">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/volume_slider_inactive</item>
+    </style>
+
+    <style name="QSBorderlessButton">
+        <item name="android:padding">12dp</item>
+        <item name="android:background">@drawable/btn_borderless_rect</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="OutPlayStyle" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+    </style>
 
 </resources>

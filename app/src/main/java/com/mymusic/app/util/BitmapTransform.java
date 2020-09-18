@@ -23,7 +23,7 @@ public class BitmapTransform extends BitmapTransformation {
 
         int w = toTransform.getWidth();
         int h = toTransform.getHeight();
-        int GRADIENT_HEIGHT = 100;
+        int GRADIENT_HEIGHT = h/8;
 
         Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 //        Bitmap overlay=pool.get(w,h, Bitmap.Config.ARGB_8888);

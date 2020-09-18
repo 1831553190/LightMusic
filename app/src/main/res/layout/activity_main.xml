@@ -58,7 +58,7 @@
         app:fadeColor="@android:color/transparent"
         android:gravity="bottom"
         app:panelHeight="50dp"
-        app:shadowHeight="6dp"
+        app:shadowHeight="0dp"
         app:directOffset="true"
         app:dragView="@+id/queueLayoutText">
 
@@ -99,7 +99,6 @@
 
                 <TextView
                     android:clickable="true"
-                    android:background="?attr/selectableItemBackground"
                     android:id="@+id/queueLayoutText"
                     android:text="播放列表"
                     android:gravity="center"

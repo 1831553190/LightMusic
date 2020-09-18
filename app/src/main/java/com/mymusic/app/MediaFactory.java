@@ -48,6 +48,7 @@ public class MediaFactory {
 			mediaData.setDuration(cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)));
 			mediaData.setFileSize(cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)));
 			mediaData.setFilePath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
+			mediaData.setDataUri(ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,mediaData.getId()));
 			mediaDataList.add(mediaData);
 		}
 		cursor.close();

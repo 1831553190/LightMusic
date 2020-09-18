@@ -207,9 +207,6 @@ public class PlayingActivity extends AppCompatActivity implements View.OnClickLi
         songArtist = findViewById(R.id.playSongArtist);
         songName = findViewById(R.id.playSongName);
 
-//        if (!show){
-//            albumCard.setRadius(DensityUtil.dip2px(this,2));
-//        }
 
         progressBar.setOnSeekChangeListener(new MySmoothSeekBar.OnSeekChangeListener() {
             @Override
@@ -229,8 +226,6 @@ public class PlayingActivity extends AppCompatActivity implements View.OnClickLi
                 handler.post(PlayingActivity.this);
             }
         });
-
-
     }
 
 
@@ -245,8 +240,6 @@ public class PlayingActivity extends AppCompatActivity implements View.OnClickLi
         animatorSet.playTogether(objectAnimator, objectAnimator2);
         animatorSet.setInterpolator(new DecelerateInterpolator());
         animatorSet.start();
-
-
     }
 
     ServiceConnection serviceConnection = new ServiceConnection() {

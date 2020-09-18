@@ -11,4 +11,13 @@
     <dimen name="pause_bar_width">5dp</dimen>
     <dimen name="pause_bar_height">14dp</dimen>
     <dimen name="pause_bar_distance">4dp</dimen>
+    <dimen name="borderless_button_radius">2dp</dimen>
+    <dimen name="volume_button_size">48dp</dimen>
+    <dimen name="notification_side_padding">8dp</dimen>
+    <dimen name="standard_notification_panel_width">416dp</dimen>
+    <dimen name="volume_slider_interspacing">8dp</dimen>
+    <dimen name="volume_offset_top">30dp</dimen>
+    <dimen name="volume_dialog_margin_bottom">4dp</dimen>
+    <dimen name="notification_material_rounded_rect_radius">2dp</dimen>
+    <dimen name="volume_panel_z">4dp</dimen>
 </resources>

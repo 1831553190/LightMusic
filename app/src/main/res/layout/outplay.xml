@@ -1,27 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:layout_width="320dp"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".PlayOutActivity">
     <ImageView
         android:id="@+id/pImg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/cover_background"
-        android:layout_marginLeft="16dp" />
+        app:srcCompat="@drawable/cover_background" />
+
+
+    <com.mymusic.app.view.MyTextView
+        android:id="@+id/out_title"
+        android:layout_width="0dp"
+        android:textSize="20sp"
+        tools:text="测试"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="3"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@id/out_singer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/pImg"
+        app:layout_constraintTop_toTopOf="@+id/pImg" />
+
+    <TextView
+        android:id="@+id/out_singer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/pImg"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/out_title"
+        app:layout_constraintTop_toBottomOf="@+id/out_title" />
 
     <com.mymusic.app.view.MySmoothSeekBar
         android:id="@+id/psbar"
-        android:layout_margin="16dp"
-        android:padding="5dp"
         android:layout_width="match_parent"
-        android:layout_height="20dp" />
+        android:layout_height="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:padding="5dp"
+        app:layout_constraintStart_toStartOf="@+id/pImg"
+        app:layout_constraintTop_toBottomOf="@+id/pImg" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

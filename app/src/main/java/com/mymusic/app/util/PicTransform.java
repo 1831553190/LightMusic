@@ -18,7 +18,7 @@ public class PicTransform {
     public static Bitmap addGradient(Bitmap src) {
         int w = src.getWidth();
         int h = src.getHeight();
-        int GRADIENT_HEIGHT = h/4;
+        int GRADIENT_HEIGHT = h/8;
 
         Bitmap overlay = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(overlay);

@@ -40,6 +40,7 @@
 <!--        android:title="底部播放栏显示进度" />-->
     <CheckBoxPreference
         android:key="showBlru"
+        android:defaultValue="false"
         android:summary="播放界面使用"
         android:title="高斯模糊" />
 

@@ -26,7 +26,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -73,7 +74,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	Bitmap iBitmap;
 	ActionOps actionOps;
 
-	static float vol;
+	float vol=-1f;
 
 
 	private SharedPreferences sharePreference;
@@ -94,6 +95,16 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		public void stateResume(){
 			for (ServiceUpdate service:listeners.values()){
 				service.stateResume();
+			}
+		}
+
+		public void pause(){
+			if (mediaPlayer!=null&&mediaPlayer.isPlaying()){
+				mediaPlayer.pause();
+				stopForeground(false);
+				notificationManager.notify(MEDIA_ID,notifyMedia(currentPosition));
+				sharePreference.edit().putInt("position",currentPosition).apply();
+				statePlayAndPauseChange();
 			}
 		}
 
@@ -161,7 +172,9 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				try {
 					mediaPlayer.reset();
 //					mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-					mediaPlayer.setDataSource(playList.get(position).getFilePath());
+//					mediaPlayer.setDataSource(playList.get(position).getFilePath());
+					mediaPlayer.setDataSource(getApplicationContext(),playList.get(position).getDataUri());
+
 					mediaPlayer.prepare();
 					mediaPlayer.start();
 				} catch (IOException e) {
@@ -188,6 +201,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				vol=1.0f;
 			}
 			mediaPlayer.setVolume(vol,vol);
+			sharePreference.edit().putFloat("vol",vol).commit();
 		}
 		public void volDOWN(){
 			if (vol>0){
@@ -197,9 +211,18 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				vol=0.0f;
 			}
 			mediaPlayer.setVolume(vol,vol);
+			sharePreference.edit().putFloat("vol",vol).commit();
 		}
 		public float getVol(){
+			if (vol==-1f){
+				vol=sharePreference.getFloat("vol",1.0f);
+			}
 			return vol;
+		}
+		public void setVol(int volume){
+			vol=volume/100.0f;
+			mediaPlayer.setVolume(vol,vol);
+			sharePreference.edit().putFloat("vol",vol).commit();
 		}
 
 		public int getState(){
@@ -261,8 +284,6 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		public void play(Uri uri){
 			playList.clear();
 			try {
-
-
 				MediaData data = new MediaData();
 				MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
 				if (uri.getScheme().equals("file")) {
@@ -342,11 +363,6 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				startForegroundService(new Intent(MediaService.this,MediaService.class));
 			}
 		}
-
-
-
-
-
 
 
 		public Bitmap getBitmap() {
@@ -442,6 +458,8 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		}
 		return super.onStartCommand(intent, flags, startId);
 	}
+
+
 	
 
 	
@@ -449,10 +467,24 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 	public void onCreate() {
 		super.onCreate();
 		mediaPlayer=new MediaPlayer();
+		TelephonyManager tm= (TelephonyManager) getSystemService(TELEPHONY_SERVICE);//
+		PhoneStateListener phoneStateListener=new PhoneStateListener(){
+			@Override
+			public void onCallStateChanged(int state, String phoneNumber) {
+				super.onCallStateChanged(state, phoneNumber);
+				switch (state){
+					case TelephonyManager.CALL_STATE_OFFHOOK:
+					case TelephonyManager.CALL_STATE_RINGING:
+						binder.pause();
+
+				}
+			}
+		};
+		tm.listen(phoneStateListener,PhoneStateListener.LISTEN_CALL_STATE);
 		mediaDataList= MediaFactory.getMediaList(this, null,0);
 		albumDataList= MediaFactory.getAlbumList(this);
 		artistList= MediaFactory.getArtistList(this);
-
+		sharePreference= PreferenceManager.getDefaultSharedPreferences(this);
 		playList=new ArrayList<>();
 		queryList=new ArrayList<>();
 		playList.addAll(mediaDataList);
@@ -466,14 +498,13 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		intentFilter.addAction(DataBean.ACTION_PLAYNEXT);
 		actionOps = new ActionOps();
 		registerReceiver(actionOps,intentFilter);
-		sharePreference= PreferenceManager.getDefaultSharedPreferences(this);
+
 		currentPosition=sharePreference.getInt("position",0);
 		Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
 		ComponentName mComponentName = new ComponentName(this.getPackageName(), MediaBtnEvent.class.getName());
 		mediaButtonIntent.setComponent(mComponentName);
 		AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		mAudioManager.registerMediaButtonEventReceiver(mComponentName);
-		vol=1.0f;
 	}
 	
 	
@@ -482,65 +513,29 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			mediaStyle=new Notification.MediaStyle();
 			mediaSession=new MediaSession(this,"music");
 			mediaStyle.setMediaSession(mediaSession.getSessionToken());
-			mediaStyle.setShowActionsInCompactView(new int[]{0,1,2});
+			mediaStyle.setShowActionsInCompactView(0,1,2);
 			mediaMetadata=new MediaMetadata.Builder();
 			mediaSession.setMetadata(mediaMetadata.build());
 			playbackState=new PlaybackState.Builder().setState(PlaybackState.STATE_PLAYING,currentPosition,System.currentTimeMillis()).setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS).build();
 			mediaSession.setPlaybackState(playbackState);
-
+			playCallBack=new MediaSession.Callback() {
+				@Override
+				public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
+					return new MediaBtnEvent().handleEvent(MediaService.this,mediaButtonIntent);
+				}
+			};
+			mediaSession.setCallback(playCallBack);
 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			notificationChannel=new NotificationChannel("listening_music","music", NotificationManager.IMPORTANCE_LOW);
 			notificationManager.createNotificationChannel(notificationChannel);
 		}
-		mediaSession.setCallback(playCallBack);
 
-	
 }
 
 
-	private MediaSession.Callback playCallBack=new MediaSession.Callback() {
-		@Override
-		public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
-			return new MediaBtnEvent().handleEvent(MediaService.this,mediaButtonIntent);
-		}
+	private MediaSession.Callback playCallBack;
 
-		@Override
-		public void onPrepare() {
-			super.onPrepare();
-		}
-
-		@Override
-		public void onPlay() {
-			super.onPlay();
-		}
-
-		@Override
-		public void onPause() {
-			super.onPause();
-		}
-
-		@Override
-		public void onSkipToNext() {
-			super.onSkipToNext();
-		}
-
-		@Override
-		public void onStop() {
-			super.onStop();
-		}
-
-		@Override
-		public void onSeekTo(long pos) {
-			super.onSeekTo(pos);
-		}
-	};
-
-
-	
-
-	
-	
 	public static final Bitmap drawableToBitmap(Drawable drawable) {
 		MediaPlayer mediaPlayer;
 		Bitmap bitmap = Bitmap.createBitmap( drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(),
@@ -606,8 +601,4 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			}
 		}
 	}
-
-
-	
-	
 }

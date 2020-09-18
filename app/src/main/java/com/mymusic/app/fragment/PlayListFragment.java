@@ -6,22 +6,17 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.mymusic.app.MainActivity;
-import com.mymusic.app.MediaFactory;
 import com.mymusic.app.MediaService;
 import com.mymusic.app.R;
 import com.mymusic.app.adapter.SongAdapter;
-import com.mymusic.app.bean.DataBean;
 import com.mymusic.app.bean.MediaData;
 import com.mymusic.app.inter.UpdateMag;
 
@@ -41,15 +36,25 @@ public class PlayListFragment extends Fragment {
     private UpdateMag updateMag;
     View view;
 
-
+    static PlayListFragment playListFragment;
+    public static Fragment getInstance(){
+        if (playListFragment ==null){
+            synchronized (PlayListFragment.class){
+                if (playListFragment ==null){
+                    playListFragment =new PlayListFragment();
+                }
+            }
+        }
+        return playListFragment;
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 //        setRetainInstance(true);
-        if (view==null) {
+//        if (view==null) {
             view = inflater.inflate(R.layout.layout_playlist, container, false);
-        }
+//        }
         init(view);
         return view;
     }

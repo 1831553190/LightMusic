@@ -1,7 +1,6 @@
 package com.mymusic.app.fragment;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,15 +31,29 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FragmentIndex extends Fragment implements ActivityToFragment.UpdateIndex{
-	private static final int UPDATE=423;
+public class FragmentIndex extends Fragment implements ActivityToFragment.UpdateIndex {
+	private static final int UPDATE = 423;
 	RecyclerView recyclerView;
-	public List<MediaData> songList,tempList;
+	public List<MediaData> songList, tempList;
 	SongAdapter songAdapter;
 	View view;
-	boolean isInit=false;
+	boolean isInit = false;
 	UpdateMag updateMag;
 	AlertDialog.Builder dialog;
+
+
+	static FragmentIndex fragmentIndex;
+
+	public static Fragment getInstance() {
+		if (fragmentIndex == null) {
+			synchronized (FragmentIndex.class) {
+				if (fragmentIndex == null) {
+					fragmentIndex = new FragmentIndex();
+				}
+			}
+		}
+		return fragmentIndex;
+	}
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,52 +64,45 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		if (!isInit){
-			if (view==null){
-				view = inflater.inflate(R.layout.fragment_recycler,container,false);
-			}
-			init(view);
-			isInit=true;
-		}
+		view = inflater.inflate(R.layout.fragment_recycler, container, false);
+		init(view);
 //		setRetainInstance(true);
 		return view;
 	}
-	private void init(View view){
-		songList=new ArrayList<>();
-		tempList=new ArrayList<>();
-		recyclerView=view.findViewById(R.id.main_list);
-		songAdapter =new SongAdapter(view.getContext(),songList,tempList);
+
+	private void init(View view) {
+		songList = new ArrayList<>();
+		tempList = new ArrayList<>();
+		recyclerView = view.findViewById(R.id.main_list);
+		songAdapter = new SongAdapter(getActivity().getBaseContext(), songList, tempList);
 		recyclerView.setAdapter(songAdapter);
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-		songAdapter.setOnItemClickListener((position)-> {
-			updateMag.playList(songList,position);
+		songAdapter.setOnItemClickListener((position) -> {
+			updateMag.playList(songList, position);
 		});
-		if (updateMag.getBider()!=null&&songList.isEmpty()){
+		if (updateMag.getBider() != null && songList.isEmpty()) {
 			updateMag.getData(0);
 		}
 
 
-
 		songAdapter.setOnItemLongClickListener((view1, position) -> {
-			PopupMenu popupMenu=new PopupMenu(view.getContext(),view1);
-			popupMenu.getMenuInflater().inflate(R.menu.song_info,popupMenu.getMenu());
+			PopupMenu popupMenu = new PopupMenu(view.getContext(), view1);
+			popupMenu.getMenuInflater().inflate(R.menu.song_info, popupMenu.getMenu());
 			popupMenu.setOnMenuItemClickListener(item -> {
-				View info_view=LayoutInflater.from(getContext()).inflate(R.layout.song_info,null);
-				TextView song_size= info_view.findViewById(R.id.text_song_size);
-				MyTextView song_path= info_view.findViewById(R.id.text_song_path);
-				dialog=new AlertDialog.Builder(view.getContext());
+				View info_view = LayoutInflater.from(getContext()).inflate(R.layout.song_info, null);
+				TextView song_size = info_view.findViewById(R.id.text_song_size);
+				MyTextView song_path = info_view.findViewById(R.id.text_song_path);
+				dialog = new AlertDialog.Builder(view.getContext());
 				dialog.setView(info_view);
 				song_size.setText(String.format("文件大小：%s", getDataSize(songList.get(position).getFileSize())));
 				song_path.setText(songList.get(position).getFilePath());
-						dialog.setTitle(songList.get(position).getTitle())
-						.setPositiveButton("确定",null)
+				dialog.setTitle(songList.get(position).getTitle())
+						.setPositiveButton("确定", null)
 						.create().show();
 				return true;
 			});
 			popupMenu.show();
 		});
-
-
 
 
 //		if (songList.isEmpty()){
@@ -131,6 +137,7 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 //			}
 //		});
 	}
+
 	public static String getDataSize(long size) {
 		DecimalFormat formater = new DecimalFormat("####.00");
 		if (size < 1024) {
@@ -152,8 +159,8 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 	@Override
 	public void onAttach(Context context) {
 		super.onAttach(context);
-		if (context instanceof UpdateMag){
-			updateMag= (UpdateMag) context;
+		if (context instanceof UpdateMag) {
+			updateMag = (UpdateMag) context;
 		}
 	}
 
@@ -164,7 +171,7 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 
 	@Override
 	public void updateData(List<MediaData> dataList) {
-		if (songList.isEmpty()){
+		if (songList.isEmpty()) {
 			songList.addAll(dataList);
 			tempList.addAll(songList);
 			songAdapter.notifyDataSetChanged();
@@ -172,27 +179,25 @@ public class FragmentIndex extends Fragment implements ActivityToFragment.Update
 	}
 
 
-
-
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (updateMag.getBider()!=null&&songList.isEmpty()){
+		if (updateMag.getBider() != null && songList.isEmpty()) {
 			updateMag.getData(0);
 		}
 	}
 
 	@Override
 	public void serverConnect() {
-		if (songList!=null&&updateMag.getBider()!=null&&songList.isEmpty()) {
+		if (songList != null && updateMag.getBider() != null && songList.isEmpty()) {
 			updateMag.getData(0);
 		}
 	}
 
 	@Override
 	public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-		inflater.inflate(R.menu.menu_fragment,menu);
-		SearchView searchView= (SearchView) menu.findItem(R.id.app_bar_search).getActionView();
+		inflater.inflate(R.menu.menu_fragment, menu);
+		SearchView searchView = (SearchView) menu.findItem(R.id.app_bar_search).getActionView();
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {

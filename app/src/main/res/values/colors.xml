@@ -14,4 +14,12 @@
     <color name="tabSelectColor">#ffffff</color>
     <color name="tabBackground">@color/colorPrimary</color>
     <color name="textColor">@color/cardview_dark_background</color>
+    <color name="volume_slider_inactive">#FFB0BEC5</color>
+    <color name="volume_icon_color">#FFFFFF</color>
+    <color name="volume_settings_icon_color">#7fffffff</color>
+    <color name="volume_slider_active">@color/system_accent_color</color>
+    <color name="system_accent_color">#ff80CBC4</color>
+    <color name="system_primary_color">#ff263238</color>
+    <color name="windowsBackground">#ffffffff</color>
+
 </resources>
