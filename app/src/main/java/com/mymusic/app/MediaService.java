@@ -16,6 +16,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.media.MediaMetadataRetriever;
@@ -294,6 +296,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 					playUri(uri);
 				}
 				currentPosition = 0;
+				data.setDataUri(uri);
 				String title = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
 				data.setTitle(title == null || title.isEmpty() ? "无标题" : title);
 				data.setAlbum(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST));
@@ -480,6 +483,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				}
 			}
 		};
+
 		tm.listen(phoneStateListener,PhoneStateListener.LISTEN_CALL_STATE);
 		mediaDataList= MediaFactory.getMediaList(this, null,0);
 		albumDataList= MediaFactory.getAlbumList(this);
@@ -493,21 +497,71 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 		mediaPlayer.setOnCompletionListener(this);
 		init();
 		IntentFilter intentFilter=new IntentFilter();
+
 		intentFilter.addAction(DataBean.ACTION_PLAYANDPASE);
 		intentFilter.addAction(DataBean.ACTION_PLAYPRIVAOUS);
 		intentFilter.addAction(DataBean.ACTION_PLAYNEXT);
+		intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
 		actionOps = new ActionOps();
 		registerReceiver(actionOps,intentFilter);
-
+		registerReceiver(headsetPlugReceiver,intentFilter);
 		currentPosition=sharePreference.getInt("position",0);
 		Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
 		ComponentName mComponentName = new ComponentName(this.getPackageName(), MediaBtnEvent.class.getName());
 		mediaButtonIntent.setComponent(mComponentName);
 		AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+
+		//判断音乐焦点是否丢失
+//		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//			AudioAttributes audioAttributes = new AudioAttributes.Builder()
+//					.setUsage(AudioAttributes.USAGE_GAME)
+//					.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+//					.build();
+//			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//				AudioFocusRequest audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+//						.setAudioAttributes(audioAttributes)
+//						.setOnAudioFocusChangeListener(new AudioManager.OnAudioFocusChangeListener() {
+//							@Override
+//							public void onAudioFocusChange(int focusChange) {
+//								switch (focusChange){
+//									case AudioManager.AUDIOFOCUS_GAIN:
+//										if(!mediaPlayer.isPlaying()){
+//											mediaPlayer.start();
+//										}
+//										break;
+//									case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
+//										break;
+//									case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
+//										break;
+//									case AudioManager.AUDIOFOCUS_LOSS:
+//										if(mediaPlayer.isPlaying()){
+//											binder.pause();
+//										}
+//										break;
+//									case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+//										if(mediaPlayer.isPlaying()){
+//											binder.pause();
+//										}
+//										break;
+//									case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+//										break;
+//									default:
+//								}
+//							}
+//						}).build();
+//				mAudioManager.requestAudioFocus(audioFocusRequest);
+//			}
+//
+//		}
+
+
+
 		mAudioManager.registerMediaButtonEventReceiver(mComponentName);
 	}
-	
-	
+
+	AudioManager.OnAudioFocusChangeListener afChangeListener ;
+
 	private void init(){
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			mediaStyle=new Notification.MediaStyle();
@@ -519,6 +573,26 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			playbackState=new PlaybackState.Builder().setState(PlaybackState.STATE_PLAYING,currentPosition,System.currentTimeMillis()).setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS).build();
 			mediaSession.setPlaybackState(playbackState);
 			playCallBack=new MediaSession.Callback() {
+				@Override
+				public void onPlay() {
+					AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+					// Request audio focus for playback, this registers the afChangeListener
+					int result = am.requestAudioFocus(afChangeListener,
+							// Use the music stream.
+							AudioManager.STREAM_MUSIC,
+							// Request permanent focus.
+							AudioManager.AUDIOFOCUS_GAIN);
+
+					if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+						// Start the service
+//						service.start();
+						// Set the session active  (and update metadata and state)
+						mediaSession.setActive(true);
+
+					}
+				}
+
+
 				@Override
 				public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
 					return new MediaBtnEvent().handleEvent(MediaService.this,mediaButtonIntent);
@@ -536,19 +610,11 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 
 	private MediaSession.Callback playCallBack;
 
-	public static final Bitmap drawableToBitmap(Drawable drawable) {
-		MediaPlayer mediaPlayer;
-		Bitmap bitmap = Bitmap.createBitmap( drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(),
-				drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
-		Canvas canvas = new Canvas(bitmap);
-		drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-		drawable.draw(canvas);
-		return bitmap;
-	}
+
 	
 	public Notification notifyMedia(int position){
 		int icon=mediaPlayer.isPlaying()?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp;
-		action = new Notification.Action(R.drawable.ic_pause_black_24dp,"play",null);
+//		action = new Notification.Action(R.drawable.ic_pause_black_24dp,"play",null);
 		Intent intent=new Intent(this,MainActivity.class);
 		FileDescriptor imgPath=MediaFactory.getAlbumArtGetDescriptor(this,playList.get(position).getAlbumID());
 		if (imgPath!=null){
@@ -572,11 +638,13 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 				.setPriority(Notification.PRIORITY_LOW);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 				notifiBuider.setCategory(Notification.CATEGORY_TRANSPORT)
-						.setStyle(mediaStyle);
+						.setStyle(mediaStyle);      //android6.0+的音乐通知
 		}
 		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 			notifiBuider.setChannelId("listening_music");
 		}
+
+
 		notification=notifiBuider.build();
 		return notification;
 	}
@@ -601,4 +669,21 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 			}
 		}
 	}
+
+	private BroadcastReceiver headsetPlugReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
+				if (mediaPlayer.isPlaying()){
+					binder.pause();
+				}else{
+					binder.playAndPause();
+				}
+			}
+		}
+
+	};
+
 }

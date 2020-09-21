@@ -12,6 +12,8 @@ import android.widget.Scroller;
 
 import com.mymusic.app.DensityUtil;
 
+
+@Deprecated
 public class MyViewGroup extends ViewGroup {
     static int viewHeight;
     private int mStartY;

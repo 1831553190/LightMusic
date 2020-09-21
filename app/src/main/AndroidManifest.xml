@@ -4,6 +4,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -16,7 +19,7 @@
             android:launchMode="singleTask"
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:configChanges="orientation|keyboardHidden"
+            android:configChanges="uiMode|orientation|keyboardHidden"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,8 +28,8 @@
         </activity>
         <activity android:name=".PlayListActivity" />
         <activity android:name=".PlayingActivity" />
-        <activity android:name=".view.PlayOutActivity"
-            android:theme="@style/Theme.AppCompat.Dialog">
+        <activity android:name=".PlayOutActivity"
+            android:theme="@style/OutPlayStyle">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <action android:name="android.intent.action.VIEW"/>
@@ -42,6 +45,12 @@
         <service android:name=".MediaService" />
         <receiver android:name=".MediaBtnEvent"
             android:process="com.mymusic.app.MediaBtnEvent"/>
+<!--        <receiver android:name=".broadcase.PhoneStateBroadCastReceiver">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.PHONE_STATE"/>-->
+<!--                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
     </application>
 
 </manifest>

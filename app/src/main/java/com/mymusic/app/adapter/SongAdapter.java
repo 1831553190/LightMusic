@@ -131,7 +131,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.Holder> implem
 		});
 		holder.itemView.setOnLongClickListener(v -> {
 			if (onItemLongClickListener != null) {
-				onItemLongClickListener.onItemLongClick(v, position);
+				for (int i = 0; i < songList.size(); i++) {
+					if (tempList.get(position).getId() == songList.get(i).getId()) {
+						onItemLongClickListener.onItemLongClick(v, position);
+						return true;
+					}
+				}
 			}
 			return true;
 		});

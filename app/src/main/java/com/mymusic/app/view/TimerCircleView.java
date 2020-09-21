@@ -34,6 +34,11 @@ import com.mymusic.app.R;
 /**
  * Custom view that draws timer progress as a circle.
  */
+
+
+
+//因为布局问题,此自定义布局暂时不再使用
+@Deprecated
 public final class TimerCircleView extends View {
 
     /** The size of the dot indicating the progress through the timer. */

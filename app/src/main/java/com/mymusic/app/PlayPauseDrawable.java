@@ -18,7 +18,7 @@ import androidx.annotation.NonNull;
 import android.util.Property;
 import android.view.animation.DecelerateInterpolator;
 
-
+//播放暂停动画按钮
 public class PlayPauseDrawable extends Drawable {
     private static final long PLAY_PAUSE_ANIMATION_DURATION = 250;
 

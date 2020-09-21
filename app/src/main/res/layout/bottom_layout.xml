@@ -9,7 +9,7 @@
     android:id="@+id/bottomFrame">
 
 
-<com.mymusic.app.view.BottomLayout
+<com.mymusic.app.view.BottomProgressConstraintLayout
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -102,5 +102,5 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_skip_previous_black_24dp"
         android:layout_marginRight="8dp" />
-</com.mymusic.app.view.BottomLayout>
+</com.mymusic.app.view.BottomProgressConstraintLayout>
 </FrameLayout>

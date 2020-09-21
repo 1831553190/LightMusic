@@ -36,6 +36,7 @@ import static com.mymusic.app.view.Timer.State.RUNNING;
 /**
  * A read-only domain object representing a countdown timer.
  */
+@Deprecated
 public final class Timer {
 
     public enum State {

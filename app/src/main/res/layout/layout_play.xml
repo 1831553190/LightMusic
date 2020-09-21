@@ -48,7 +48,6 @@
             android:layout_width="0dp"
             android:scaleType="fitXY"
             android:layout_height="wrap_content"
-            app:srcCompat="@drawable/cover_background"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
@@ -151,7 +150,7 @@
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/btnPlayPlay"
-                android:layout_width="wrap_content"
+                android:layout_width="24dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:layout_weight="1"
@@ -231,7 +230,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/bottomPlayLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_baseline_notes_24" />
+            app:srcCompat="@drawable/ic_pal" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

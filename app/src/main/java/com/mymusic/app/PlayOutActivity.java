@@ -25,6 +25,8 @@ import java.util.Objects;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+
+//播放外部音乐的活动
 public class PlayOutActivity extends AppCompatActivity implements Runnable{
 
     String path=null;

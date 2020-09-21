@@ -30,6 +30,9 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+
+//用不到的活动,已弃用
+@Deprecated
 public class PlayListActivity extends AppCompatActivity {
 	RecyclerView recyclerView;
 	public List<MediaData> songList,tempList;

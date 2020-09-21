@@ -17,7 +17,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.mymusic.app.R;
 
-public class BottomLayout extends ConstraintLayout {
+public class BottomProgressConstraintLayout extends ConstraintLayout {
 
     Paint paint;
     int height;
@@ -28,11 +28,11 @@ public class BottomLayout extends ConstraintLayout {
     private Paint paintBackground;
 
 
-    public BottomLayout(Context context) {
+    public BottomProgressConstraintLayout(Context context) {
         super(context);
     }
 
-    public BottomLayout(Context context, AttributeSet attrs) {
+    public BottomProgressConstraintLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }

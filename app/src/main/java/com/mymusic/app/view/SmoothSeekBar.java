@@ -12,6 +12,8 @@ import android.widget.SeekBar;
 
 import androidx.appcompat.widget.AppCompatSeekBar;
 
+
+@Deprecated
 public class SmoothSeekBar extends AppCompatSeekBar implements AppCompatSeekBar.OnSeekBarChangeListener {
 
     private AppCompatSeekBar.OnSeekBarChangeListener onSeekBarChangeListener;
@@ -88,7 +90,7 @@ public class SmoothSeekBar extends AppCompatSeekBar implements AppCompatSeekBar.
                 needCallListener=false;
             }
 
-            SmoothSeekBar.super.setProgress(value);
+            super.setProgress(value);
 
         });
         animator.start();

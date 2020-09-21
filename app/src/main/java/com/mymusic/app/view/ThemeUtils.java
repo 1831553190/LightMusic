@@ -25,6 +25,8 @@ import android.graphics.drawable.Drawable;
 import androidx.annotation.AttrRes;
 import androidx.annotation.ColorInt;
 
+
+@Deprecated
 public final class ThemeUtils {
 
     /** Temporary array used internally to resolve attributes. */

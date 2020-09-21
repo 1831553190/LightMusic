@@ -3,6 +3,7 @@ package com.mymusic.app;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
@@ -24,6 +25,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -43,6 +45,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -66,7 +69,7 @@ import com.mymusic.app.inter.UpdateMag;
 import com.mymusic.app.util.AlbumUtils;
 import com.mymusic.app.util.BitmapTransform;
 import com.mymusic.app.util.PicTransform;
-import com.mymusic.app.view.BottomLayout;
+import com.mymusic.app.view.BottomProgressConstraintLayout;
 import com.mymusic.app.view.MyImageView;
 import com.mymusic.app.view.MySmoothSeekBar;
 import com.mymusic.app.view.SlidingUpPanelLayout;
@@ -97,6 +100,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import kotlin.Pair;
+
+import static android.view.View.SYSTEM_UI_FLAG_FULLSCREEN;
+import static android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+import static android.view.View.SYSTEM_UI_FLAG_IMMERSIVE;
 
 public class MainActivity extends AppCompatActivity implements UpdateMag, View.OnClickListener, Runnable {
 	ImageView albumImg;
@@ -131,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 
 	@BindView(R.id.bottomLayout)
-	BottomLayout bottomLayout;
+	BottomProgressConstraintLayout bottomLayout;
 	@BindView(R.id.bottomFrame)
 	FrameLayout frameLayout;
 
@@ -140,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 	SharedPreferences preferences;
 	private long albumId = -1;
 	float vol = 1.0f;
+	int backgroundColor = 0;
 
 
 	/*
@@ -265,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 		repeatType = preferences.getInt("repeatType", 0);
 		switch (repeatType) {
 			case 0:
-				repeatBtn.setImageResource(R.drawable.ic_baseline_notes_24);
+				repeatBtn.setImageResource(R.drawable.ic_pal);
 				break;
 			case 1:
 				repeatBtn.setImageResource(R.drawable.ic_baseline_repeat_24);
@@ -360,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 		Log.d("TAG", "onRepeatBtn: " + repeatType);
 		switch (repeatType) {
 			case 0:
-				repeatBtn.setImageResource(R.drawable.ic_baseline_notes_24);
+				repeatBtn.setImageResource(R.drawable.ic_pal);
 				Snackbar.make(v, "顺序播放", Snackbar.LENGTH_SHORT).show();
 				break;
 			case 1:
@@ -390,23 +398,22 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 	}
 
 
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	private void btnTint(ColorStateList... colorStateList) {
 //        按钮着色
-		btnPlayPre.setImageTintList(colorStateList[1]);
-
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			btnPlayPre.setImageTintList(colorStateList[1]);
+			btnPlayNext.setImageTintList(colorStateList[1]);
+			repeatBtn.setImageTintList(colorStateList[1]);
+		}
 		playPauseDrawable.setColor(colorStateList[1]);
-		btnPlayNext.setImageTintList(colorStateList[1]);
-		repeatBtn.setImageTintList(colorStateList[1]);
+
 		//文本着色
 		playSongName.setTextColor(colorStateList[1]);
 		playSongArtist.setTextColor(colorStateList[1]);
 		if (queueAdapter != null) {
 			queueAdapter.setTextColor(colorStateList[1]);
 			queueAdapter.notifyDataSetChanged();
-
 		}
-
 		//文本着色
 		leftTime.setTextColor(colorStateList[1]);
 		rightTime.setTextColor(colorStateList[1]);
@@ -457,13 +464,30 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //        return Color.HSVToColor(hsv);
 //    }
 
+
+	private void colorTransform(View view, int color1, int color2) {
+		ValueAnimator colorAnim = new ValueAnimator();
+		colorAnim.setIntValues(color1, color2);
+		colorAnim.setDuration(500);
+		colorAnim.setEvaluator(new ArgbEvaluator());
+		colorAnim.addUpdateListener(animation -> {
+			view.setBackgroundColor((Integer) animation.getAnimatedValue());
+		});
+		colorAnim.addListener(new AnimatorListenerAdapter() {
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				backgroundColor = color2;
+			}
+		});
+		colorAnim.start();
+	}
+
 	ServiceUpdate serviceUpdate = new ServiceUpdate() {
 		@Override
 		public void updateSongInfo() {
 			replaceAlbumArt();
 
 			showBottom(binder.getMediaData());
-
 
 			FileDescriptor fd = MediaFactory.getAlbumArtGetDescriptor(MainActivity.this, binder.getMediaData().getAlbumID());
 			Bitmap bitmap = null;
@@ -524,42 +548,30 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //                getDarkerColor(outputBitmap)
 
 				secondSlidePanel.setBackground(new BitmapDrawable(getResources(), outputBitmap));
-//                secondSlidePanel.setBackgroundColor(palette.getLightMutedColor(Color.WHITE));
 				rs.destroy();
 				Palette palette1 = Palette.from(outputBitmap).generate();
-//                btnPlayPlay.setBackgroundTintList(
-//                        ColorStateList.valueOf(palette.getLightMutedColor(getResources().getColor(android.R.color.white))));
-
-
-				if (ColorUtils.calculateLuminance(outputBitmap.getPixel(0, 0)) > 0.5) {
-					btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),
-							ColorStateList.valueOf(palette.getDarkVibrantColor(palette.getDarkMutedColor(
-									getResources().getColor(R.color.gray2)))));
-				} else {
-					btnTint(ColorStateList.valueOf(Color.WHITE), ColorStateList.valueOf(palette.getDarkVibrantColor(
-							palette.getDarkMutedColor(
-									getResources().getColor(R.color.gray2)))));
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+					if (ColorUtils.calculateLuminance(outputBitmap.getPixel(0, 0)) > 0.5) {
+						btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),
+								ColorStateList.valueOf(palette.getDarkVibrantColor(palette.getDarkMutedColor(
+										getResources().getColor(R.color.gray2)))));
+					} else {
+						btnTint(ColorStateList.valueOf(Color.WHITE), ColorStateList.valueOf(palette.getDarkVibrantColor(
+								palette.getDarkMutedColor(
+										getResources().getColor(R.color.gray2)))));
+					}
 				}
 
 			} else {
+				//未开启高斯模糊效果
 				Pair<Integer, Integer> colorPair = colorUtil.processNotification(bitmap);
-//                secondSlidePanel.setBackgroundColor(palette.getLightMutedColor(Color.WHITE));
-//                if (colorPair.component1()<0){
-//                    secondSlidePanel.setBackgroundColor(Color.WHITE);
-//                }else{
-				secondSlidePanel.setBackgroundColor(colorPair.component1());
-
-//                }
-//                btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)),ColorStateList.valueOf(palette.getDarkMutedColor(
-//                        palette.getDarkVibrantColor(
-//                                getResources().getColor(R.color.gray2)))));
-//				btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)), ColorStateList.valueOf(
-//						colorUtil.isColorLight(colorPair.component1())?
-//								palette.getDarkMutedColor(getResources().getColor(R.color.gray2)):palette.getLightMutedColor(Color.WHITE)));
-				btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)), ColorStateList.valueOf(colorPair.component2()));
-//				btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)), ColorStateList.valueOf(palette.getDominantColor()));
+				colorTransform(secondSlidePanel, backgroundColor, colorPair.component1());
+//				backgroundColor=colorPair.component1();
+//				secondSlidePanel.setBackgroundColor(colorPair.component1());
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+					btnTint(ColorStateList.valueOf(getResources().getColor(R.color.gray2)), ColorStateList.valueOf(colorPair.component2()));
+				}
 				btnPlayPlay.setBackgroundTintList(ColorStateList.valueOf(getBrighterColor(colorPair.component1())));
-
 			}
 
 
@@ -570,9 +582,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 				int green = Color.green(color);
 				int blue = Color.blue(color);
 				if (ColorUtils.calculateLuminance(color) > 0.5f) { //浅色
-					getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+					getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | SYSTEM_UI_FLAG_HIDE_NAVIGATION | SYSTEM_UI_FLAG_IMMERSIVE);
 				} else {
-					getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+					getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | SYSTEM_UI_FLAG_HIDE_NAVIGATION | SYSTEM_UI_FLAG_IMMERSIVE);
 				}
 			}
 
@@ -596,11 +608,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 		public void statePlayAndPauseChange() {
 			if (binder.isPlaying()) {
 				playPauseDrawable.setPause(true);
-//                btnPlayPlay.setImageResource(R.drawable.ic_pause_black_24dp);
 				btnPlay.setImageResource(R.drawable.ic_pause_black_24dp);
 			} else {
 				playPauseDrawable.setPlay(true);
-//                btnPlayPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
 				btnPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
 			}
 		}
@@ -619,9 +629,9 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 //                设置底部进度条的值
 					bottomLayout.setMax(binder.getMediaplay().getDuration());
 					bottomLayout.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
+					bottomLayout.setColor(palette.getLightVibrantColor(R.attr.colorAccent));
 				}
 			}
-
 
 
 			if (binder.isPlaying()) {            //如果音乐播放更新ui
@@ -648,6 +658,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 			Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
 			int ori = mConfiguration.orientation; //获取屏幕方向
 			if (ori == mConfiguration.ORIENTATION_LANDSCAPE) {
+				//讲需要切换的两张图片直接给TransitionDrawable对象
 				Glide.with(this)
 						.load(binder.getBitmap())
 //                    .placeholder(playAlbumImg.getDrawable())
@@ -724,15 +735,16 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
 
-    }
+	}
 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+
 		setContentView(R.layout.activity_main);
 		ActivityOptions.makeCustomAnimation(this, android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
-		Log.d("TAG", "onCreate: " + (savedInstanceState == null));
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			int flagTranslucentStatus = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
 			int flagTranslucentNavigation = WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
@@ -750,6 +762,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 			}
 		}
 
+
 		ButterKnife.bind(this);
 
 		if (savedInstanceState == null) {
@@ -760,27 +773,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 		colorUtil = new AlbumUtils();
 
-////            if (fragmentMain==null){
-////                fragmentMain = new FragmentMain();
-////            }
-////            if (setting==null){
-////                setting=new Setting();
-////            }
-////            fragmentManager=getSupportFragmentManager();
-//            Log.d("TAG", "onCreate: ");
-//
-//
-////            if (getSupportFragmentManager().findFragmentByTag("fragmentMain")==null&&getSupportFragmentManager().findFragmentByTag("setting")==null){
-//
-//
-////            }
-//
-//        }
-//		if (!getSupportFragmentManager().findFragmentByTag("setting").isVisible()){
-//			fragmentManager.beginTransaction().hide(Setting.getInstance())
-//					.show(FragmentMain.getInstance())
-//					.commit();
-//		}
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		detachVol = preferences.getBoolean("detachVol", false);
 		showBottomProgress = preferences.getBoolean("showProgress", false);
@@ -868,7 +860,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 				isPlay = true;
 				showBottom(binder.getMediaData());
 			}
-            binder.stateResume();
+			binder.stateResume();
 			queueList.clear();
 			queueList.addAll(binder.getPlayList());
 			tempList.addAll(queueList);
@@ -882,7 +874,7 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-
+			binder.removeListener("main");
 		}
 	};
 
@@ -928,7 +920,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		for (int result : grantResults) {
-			System.out.println(result);
 			if (result == -1) {
 				permissionResult = false;
 			}
@@ -950,7 +941,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 		super.onDestroy();
 		if (binder != null) {
 			unbindService(serviceConnection);
-//			binder.removeListener("main");
 		}
 		handler.removeCallbacks(MainActivity.this);
 		new Thread(() -> Glide.get(MainActivity.this).clearDiskCache()).start();
@@ -967,6 +957,14 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 			binder.statePlayAndPauseChange();
 			binder.songChange();
 		}
+		View decorView = getWindow().getDecorView();
+		int option = SYSTEM_UI_FLAG_HIDE_NAVIGATION | SYSTEM_UI_FLAG_IMMERSIVE;
+		decorView.setSystemUiVisibility(option);
+//		View decorView = getWindow().getDecorView();
+//		// Hide the status bar.
+//		int uiOptions = SYSTEM_UI_FLAG_FULLSCREEN;
+//		decorView.setSystemUiVisibility(uiOptions);
+
 	}
 
 	@Override
@@ -983,12 +981,10 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 		if (data != null && slidePanel.isPanelHidden() && isPlay()) {
 			slidePanel.showPanel();
 //            bottomView.setVisibility(View.VISIBLE);
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(bottomView, "translationY", 100, 0);
-				objectAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-				objectAnimator.setDuration(350);
-				objectAnimator.start();
-			}
+			ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(bottomView, "translationY", 100, 0);
+			objectAnimator.setInterpolator(new DecelerateInterpolator());
+			objectAnimator.setDuration(350);
+			objectAnimator.start();
 		}
 
 		if (data != null) {
@@ -1093,8 +1089,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.setting:
-//                Log.d("TAG", "settingIsVisible: "+getSupportFragmentManager().findFragmentByTag("setting").isVisible());
-//                Log.d("TAG", "mainIsVisible: "+getSupportFragmentManager().findFragmentByTag("fragmentMain").isVisible());
 				fragmentManager.beginTransaction()
 						.show(Setting.getInstance())
 						.hide(FragmentMain.getInstance())
@@ -1110,7 +1104,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 	@Override
 	public void onAttachFragment(Fragment fragment) {
 		super.onAttachFragment(fragment);
-//        System.out.println(fragment.toString());
 		if (fragment instanceof FragmentIndex) {
 			updateIndex = (ActivityToFragment.UpdateIndex) fragment;
 		} else if (fragment instanceof FragmentOther) {
@@ -1140,12 +1133,11 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 			return true;
 		} else if (detachVol && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
 			if (binder != null) {
-				if (volumeDialog.idx() == 0&&!volumeDialog.getSeekIsMax()) {
+				if (volumeDialog.idx() == 0 && !volumeDialog.getSeekIsMax()) {
 					binder.volUP();
 					volumeDialog.show(0);
 					volumeDialog.setSeekPro((int) (binder.getVol() * 1000), volumeDialog.idx());
-				} else  {
-					Log.d("TAGM", "onKeyUp: " + m);
+				} else {
 					audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, m + 1, AudioManager.FLAG_PLAY_SOUND);
 					volumeDialog.show(0);
 					volumeDialog.setSeekPro(((int) ((m + 1) * 66.666f)), volumeDialog.idx());
@@ -1158,8 +1150,6 @@ public class MainActivity extends AppCompatActivity implements UpdateMag, View.O
 	}
 
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        m=audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-		// TODO Auto-generated method stub
 		if (detachVol && keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
 			//什么都不做
 			return true;
